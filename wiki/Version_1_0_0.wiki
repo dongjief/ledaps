@@ -1,6 +1,4 @@
-#summary One-sentence summary of this page.
-
-= Ledaps Version 1.0.0 Release Notes =
+== Ledaps Version 1.0.0 Release Notes ==
 Release Date: July 26, 2012
 
 [Installation_1_0_0 Installation]
@@ -11,12 +9,9 @@ Release Date: July 26, 2012
 
 [ProductManual_1_0_0 Product Guide]
 
-
-
-
 == Changes From Previous Version ==
 
-Add your content here.  Format your content with:
+
   * Text in *bold* or _italic_
   * Headings, paragraphs, and lists
   * Automatic links to other wiki pages
