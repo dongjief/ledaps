@@ -1,6 +1,6 @@
 #summary One-sentence summary of this page.
 
-= Release Notes =
+= Ledaps Version 1.0.0 Release Notes =
 Release Date: July 26, 2012
 
 [InstallationManual_1_0_0 Installation Manual]
@@ -9,6 +9,7 @@ Release Date: July 26, 2012
 
 [UserManual_1_0_0 User Manual]
 
+[ProductManual_1_0_0 Product Manual]
 
 
 
