@@ -3,6 +3,7 @@
 = Release Notes =
 Release Date: July 26, 2012
 
+[InstallationManual_1_0_0 Installation Manual]
 [UserManual_1_0_0 User Manual]
 
 
