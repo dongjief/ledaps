@@ -1,17 +1,20 @@
 == Ledaps Version 1.0.0 Release Notes ==
 Release Date: July 26, 2012
 
-[Installation_1_0_0 Installation]
+=== Downloads ===
+* Ledaps source code
+* Ledaps ancillaries
+* Ledaps ancillary update scripts
 
-[Dependencies_1_0_0 Dependencies]
 
-[UserManual_1_0_0 User Manual]
+=== Installation ===
 
-[ProductManual_1_0_0 Product Guide]
+=== Dependencies ===
 
-[Download_1_0_0 Download]
+=== User Manual ===
 
-[Ancillaries_1_0_0 Ancillaries]
+=== Product Guide ===
+
 
 == Changes From Previous Version ==
 
