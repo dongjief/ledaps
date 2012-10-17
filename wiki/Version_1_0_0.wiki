@@ -37,7 +37,7 @@ make
 make install
 make clean
 }}}
-This will create a list of executable files under $BIN:
+This will create a list of executable files under $BIN<br />
 lndapp lndcal  lndpm  lndsr  lndsrbm.ksh sixsV1.0B
 cmrbv1.0  compadjn  comptemp  geo2xy SDSreader3.0 xy2geo
 (tested in gcc and gfortran compiler)
@@ -49,13 +49,13 @@ ncdump program if it runs from different OS systems. If you don't
 want to run optional lndsr-based cloud mask (lndsrbm), you will 
 not need the ncdump program.
 
-  # Setup environment
+  #: Setup environment
 {{{
 export ANC_PATH="directory_saved_ancillary_files"
 (or in c shell use 
 setenv ANC_PATH "directory_saved_ancillary_files")
 }}}
-  # Test - Download Landsat files and then run following commands separately
+  #: Test - Download Landsat files and then run following commands separately
 {{{
 lndpm <Landsat_meta_file>
 lndcal <lndcal_input_text>
@@ -78,14 +78,14 @@ else
     set meta = `echo $meta_file | sed -e 's/.txt//' -e 's/_MTL//' -e 's/.met//'`
 endif
 }}}
-  # Run LEDAPS modules
+  #: Run LEDAPS modules
 {{{
 $BIN/lndpm $meta_file
 $BIN/lndcal lndcal.$meta.txt
 $BIN/lndsr lndsr.$meta.txt
 $BIN/lndsrbm.ksh lndsr.$meta.txt
 }}}
-  # Check output
+  #: Check output
 {{{
 lndcal.*.hdf: top-of-atmosphere (TOA) reflectance in HDF format
 lndth.*.hdf: thermal brightness temperature in HDF format
@@ -113,7 +113,7 @@ information)
 
 
 == Changes From Previous Version ==
-===Updates on October 17, 2012 - USGS EROS===
+====Updates on October 17, 2012 - USGS EROS====
   * lndpm
     # lndcsm is no longer called as part of the surface reflectance processing; the internal surface reflectance cloud mask is used instead.  Therefore the cloud snow/mask is no longer sent as a parameter for lndsr.
     # Updated lndpm based on mods provided by Feng Gao from 1/18/2012.
@@ -149,8 +149,3 @@ information)
 
   * bin
     # Modified do_ledaps.csh to no longer call lndcsm as part of the LEDAPS processing flow.
-
-
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
