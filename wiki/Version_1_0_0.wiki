@@ -41,7 +41,7 @@ Release Date: July 26, 2012
     # Updated the metadata tags to work with the newly released LPGS metadata as well as continuing to support the old metadata tags.
     # Cleaned up warning messages from compilation.
     # Reset the version to 1.0.0 as this is our first official version of LEDAPS for the ESPA system.
-    # Changed the _DataProvider_ metadata tag to USGS/EROS.
+    # Changed the _Data Provider_ metadata tag to USGS/EROS.
 
   * lndcal
     # Modified calibration of band 6 to flag the saturated thermal pixels in the output brightness temperature product.  This is consistent with flagging the saturated pixels in the reflective bands.
