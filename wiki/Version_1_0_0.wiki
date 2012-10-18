@@ -14,14 +14,14 @@ Release Date: July 26, 2012
   # Install dependent libraries - GCTP, HDF4, HDF-EOS2, TIFF, GeoTIFF
   # Set up environment.  Can look at and modify ledapsSrc/src/env.sh or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.
 {{{
-    export GCTP_INC="path_to_GCTP_include_files"
-    export GCTP_LIB="path_to_GCTP_libraries"
-    export TIFF_INC="path_to_TIFF_include_files"
-    export TIFF_LIB="path_to_TIFF_libraries"
+    export GCTPINC="path_to_GCTP_include_files"
+    export GCTPLIB="path_to_GCTP_libraries"
+    export TIFFINC="path_to_TIFF_include_files"
+    export TIFFLIB="path_to_TIFF_libraries"
     export GEOTIFF_INC="path_to_GEOTIFF_include_files"
     export GEOTIFF_LIB="path_to_GEOTIFF_libraries"
-    export HDF_INC="path_to_HDF_include_files"
-    export HDF_LIB="path_to_HDF_libraries"
+    export HDFINC="path_to_HDF_include_files"
+    export HDFLIB="path_to_HDF_libraries"
     export HDFEOS_INC="path_to_HDFEOS_include_files"
     export HDFEOS_LIB="path_to_HDFEOS_libraries"
     export BIN="path_to_directory_for_LEDAPS_binaries"
