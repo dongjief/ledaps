@@ -9,31 +9,10 @@
 #include "mystring.h"
 #include "space.h"
 
-/* Extra bands - atmos_opacity, fill_QA, DDV_QA, cloud_QA, cloud_shadow_QA,
-   snow_QA, land_water_QA, adjacent_cloud_QA, nb_dark_pixels, avg_dark_sr_b7,
-   std_dark_sr_b7 */
-#define NBAND_SR_EXTRA (11)
+#define NBAND_SR_EXTRA (5)
 #define NBAND_REFL_MAX (6)
 #define NBAND_PRWV_MAX (3)
 #define NBAND_SR_MAX (NBAND_REFL_MAX + NBAND_SR_EXTRA)
-typedef enum {
-  ATMOS_OPACITY = 0,
-  FILL,
-  DDV,
-  CLOUD,
-  CLOUD_SHADOW,
-  SNOW,
-  LAND_WATER,
-  ADJ_CLOUD,
-  NB_DARK,
-  AVG_DARK,
-  STD_DARK
-} Extra_Band_t;
-
-typedef enum {
-  QA_OFF = 0,
-  QA_ON = 255
-} QA_t;
 
 /* Data provider type definition */
 

@@ -1,6 +1,5 @@
 #include <stdio.h> 
 #include <stdlib.h> 
-#include <ctype.h>
 #include "mfhdf.h"
 #define D2R     1.745329251994328e-2
 
@@ -18,8 +17,6 @@
 /*  *upperleftx = 395038.500000;*/
 /*  *upperlefty = 4728748.500000;*/
 
-int parse_comma_sep(char *argument, float *left, float *right);
-
 int main(int argc, char **argv)
 {
 
@@ -27,7 +24,7 @@ float coordinates[8];
 double parm[13];
 double radius, lat, lon, dl, ds;
 double corner[2];
-int i, ret;
+int i, l, s, ret;
 int zonecode, sphercode, rows, cols;
 float orientationangle, pixelsize, upperleftx, upperlefty;
 double arg2, arg3;
@@ -95,8 +92,6 @@ lat = arg3;
 ret = LSutmfor(&ds, &dl, lon, lat);
 printf("long %f lat %f => line   %f  samp   %f  \n",  lon, lat, dl, ds);
 #endif
-
-exit (1);
 }
 
 	     
@@ -107,6 +102,7 @@ int get_data(char *filename, int *zonecode, int *sphercode, float *orientationan
              float *upperleftx, float *upperlefty, int *rows, int *cols)
 {
 int32 i, j, n, sd, n_sets, n_gattr, count, structmetadata_exists, number_type;
+float floatattr;
 double doubleattr;
 char projection[256];
 char coordinate[256];
@@ -306,6 +302,7 @@ char attrib[XMAXLENGTH], attrib1[XMAXLENGTH];
 char *charattr;
 char line[XMAXLENGTH], objs[XMAXLENGTH];
 char lhs[XMAXLENGTH], rhs[XMAXLENGTH];
+char uppers[XMAXLENGTH];
 void get_a_line(char *text, int lengthoftext, int *start, char line[XMAXLENGTH]);
 
 SDfileinfo(sd_id, &n_sets1, &n_attr1);

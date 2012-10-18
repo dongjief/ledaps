@@ -17,7 +17,8 @@ bool cloud_detection_pass1(Lut_t *lut, int nsamp, int il, int **line_in, int8 *q
 		  cld_diags_t *cld_diags) {
 
 	int is;
-	bool is_fill;
+	bool is_fill, not_fill;
+	int ib;
 	Img_coord_int_t loc;
 	float tmpflt;
 	float rho1,rho3,rho4,rho5,rho7,t6;
@@ -137,7 +138,8 @@ bit 7 = snow
 **/
 	int is;
 	int il_ar,is_ar;
-	bool is_fill, thermal_band;
+	bool is_fill, not_fill,thermal_band;
+	int ib;
 	Img_coord_int_t loc;
 	float rho1,rho2,rho3,rho4,rho5,rho7,t6;
 	atmos_t interpol_atmos_coef;
@@ -355,7 +357,7 @@ bit 7 = snow
 **/
 
 	int il,is,il_adj,is_adj,buf_ind;
-	int k;
+	int k,l;
 
 	for (il=0;il<lut->ar_region_size.l;il++) {
 		for (is=0;is<nsamp;is++) {
@@ -395,7 +397,7 @@ bit 7 = snow
 bool cast_cloud_shadow(Lut_t *lut, int nsamp, int il_start, int ***line_in, int **b6_line,
 		  cld_diags_t *cld_diags,char ***cloud_buf, Ar_gridcell_t *ar_gridcell,float pixel_size,float adjust_north) {
 
-	int il,is,il_ar,is_ar,shd_buf_ind;
+	int il,is,il_ar,is_ar,il_clddiags,is_clddiags,shd_buf_ind;
 	float t6,temp_b6_clear,atemp_ancillary,tmpflt_arr[10];
 	float conv_factor,cld_height,ts,tv,fs,fv,dx,dy;
 	int shd_x,shd_y;
@@ -487,7 +489,7 @@ bit 7 = snow
 **/
 
 	int il,is,il_adj,is_adj,buf_ind;
-	int k;
+	int k,l;
 	char *fill_mask;
 
 	if ((fill_mask=(char *)calloc(lut->ar_region_size.l*nsamp,sizeof(char)))==NULL)
@@ -528,7 +530,7 @@ bit 7 = snow
 
 int allocate_cld_diags(cld_diags_t *cld_diags,int cell_height, int cell_width, int scene_height, int scene_width) {
 	
-	int i;
+	int i,j;
 	
 	cld_diags->cellheight=cell_height;
 	cld_diags->cellwidth=cell_width;
@@ -627,7 +629,7 @@ Original version: Thu Dec  7 15:46:05 EST 1995
 !Design Notes:   
 !END****************************************************************************
 */
-   int i,j,k,l,pass,count;
+   int i,j,k,l,pass,count,band;
    float lastt6,dist,sumt6,sumdist,lastb7,sumb7;
    char missing_flag[300][300];
 	int min_nb_values,n,max_distance;
@@ -788,6 +790,7 @@ typedef struct {
   float sum[10], sum_w;
 
   int cell_half_height,cell_half_width;
+	float aot_fill=-1.;
 
   	for (i=0;i<3;i++) 
     inter_value[i] = -9999.;

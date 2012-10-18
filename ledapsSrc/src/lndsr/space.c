@@ -83,13 +83,12 @@
 
 /* Prototypes for initializing the GCTP projections */
 
-/* void for_init(long proj_num, long zone, double *proj_param, long sphere,
+void for_init(long proj_num, long zone, double *proj_param, long sphere,
               char *file27, char *file83, long *iflag, 
 	      long (*for_trans[MAX_PROJ + 1])());
 void inv_init(long proj_num, long zone, double *proj_param, long sphere,
               char *file27, char *file83, long *iflag, 
 	      long (*inv_trans[MAX_PROJ + 1])());
-*/
 
 /* Functions */
 
@@ -1264,12 +1263,13 @@ bool GetSpaceDefHDF(Space_def_t *this, char *file_name, char *grid_name) {
 
   /* Open the HDF-EOS file. */
 
-  printf("HDF Input Filename: %s\n",file_name);
+  printf("HDF Filename: %s\n",file_name);
   gd_file_id = GDopen((char *)file_name, DFACC_READ);
   if (gd_file_id == HDF_ERROR) 
     RETURN_ERROR("opening HDF-EOS file (GDopen)", "GetSpaceDefHDF", false);
 
   /* Attach to the grid */
+  printf("the grid name is %s\n",grid_name);
   gd_id = GDattach(gd_file_id, grid_name);
   if (gd_id == HDF_ERROR) 
     RETURN_ERROR("attaching to HDF-EOS grid (GDattach)", 

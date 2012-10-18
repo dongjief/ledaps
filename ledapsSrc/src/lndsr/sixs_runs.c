@@ -53,8 +53,7 @@ int create_6S_tables(sixs_tables_t *sixs_tables) {
 	
 	for (i=0;i<SIXS_NB_BANDS;i++) {
 		for (j=0;j<SIXS_NB_AOT;j++) {
-			printf("Processing 6s for band %d  AOT %2d\r",i+1,j+1);
-            fflush(stdout);
+			printf("Processing Band %d  AOT %d\n",i+1,j+1);
 			if ((fd=fopen(sixs_cmd_filename,"w"))==NULL) {
 				fprintf(stderr,"ERROR: creating temporary file %s\n",sixs_cmd_filename);
 				exit(-1);
@@ -306,7 +305,6 @@ int create_6S_tables(sixs_tables_t *sixs_tables) {
 			fclose(fd);
 		}
 	}
-	printf ("\n");
 	unlink(sixs_cmd_filename);
 	unlink(sixs_out_filename);
 	return 0;

@@ -57,9 +57,9 @@ int  cleanUp(GRID_SR *sr);
 
 /*#define DEBUG*/
 
-int main(int argc, char *argv[])
+main(int argc, char *argv[])
 {
-  int i, irow, ret;
+  int i, irow, icol, ret;
   int32 start[2];
   int32 length[2];
   int16 *buf;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
   }
   
   /* create output and write metadata */
-  printf("Updating lndsr file for creating/modifying band6 SDS ...\n");
+  printf("Updating lndsr file ...\n");
   if((ret=openForWrite(&sr, &th))==FAILURE) {
     printf("Open for write error\n");
     exit(1);
@@ -161,13 +161,16 @@ void usage(char *command)
 /* get metadata and open specific sds */
 int getMetaInfo(GRID_SR *sr) {
 
-  int index, ret;
+  char name[100];
+  int i, index, ret;
 
   char GD_gridlist[100];
   int32 gfid=0, ngrid=0, gid=0;
   int32 bufsize=100;
   float64 GD_upleft[2];
   float64 GD_lowright[2];
+
+  int32 rank,data_type,attributes,dim_sizes[2];
   int32 att_id;
 
   /* open a hdf file */
@@ -289,10 +292,11 @@ int getMetaInfo(GRID_SR *sr) {
 /* create output HDF file and open sds_id for write */
 int openForWrite(GRID_SR *sr, GRID_SR *th)
 {
+  char str[Max_StrLen];
   int ret, index, exist;
   int32 GDfid, GDid; 
   
-  /* open hdf file and check if thermal band has already been appended */  
+  /* open hdf file and check if thermal band has already been appened */  
   if ((sr->SD_ID = SDstart(sr->fileName, DFACC_READ))<0) {
     printf("Can't open file %s",sr->fileName);
     return FAILURE;
@@ -300,8 +304,6 @@ int openForWrite(GRID_SR *sr, GRID_SR *th)
   
   /* check if band 6 already existed */
   if ((index=SDnametoindex(sr->SD_ID, th->sdsName))<0) {
-    printf("Information: band6 already exists in the surface reflectance file."
-        "  The SDS won't be recreated but will be overwritten.\n");
     exist = 0;
   }
   else exist = 1;

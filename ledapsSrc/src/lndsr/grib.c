@@ -185,10 +185,19 @@ narray -- should be null when this routine is called, should be non-null and fil
 {
 
     unsigned char *buffer;
-    double temp;
-    int i, nx, ny;
-    long int len_grib, pos = 0, nxny, buffer_size, count = 1;
+    float *array;
+    double temp, rmin, rmax;
+    int i, nx, ny, file_arg;
+    long int len_grib, pos = 0, nxny, buffer_size, n_dump, count = 1;
     unsigned char *msg, *pds, *gds, *bms, *bds, *pointer;
+    char line[200];
+    enum {BINARY, TEXT, IEEE, GRIB, NONE} output_type = NONE;
+    enum {DUMP_ALL, DUMP_RECORD, DUMP_POSITION, DUMP_LIST, INVENTORY} 
+	mode = INVENTORY;
+    long int dump = -1;
+    int verbose = 0, append = 0, v_time = 0, year_4 = 0, output_PDS_GDS = 0;
+    char *dump_file_name = "dump", open_parm[3];
+    int header = 1, return_code = 0;
     char level[130];
     float *temp_array;
     int j, jj;
@@ -203,6 +212,8 @@ narray -- should be null when this routine is called, should be non-null and fil
         return(-1);
     }
     buffer_size = BUFF_ALLOC0;
+
+    n_dump = 0;  
 
     for (;;) {
 	msg = seek_grib(input, &pos, &len_grib, buffer, MSEEK);
@@ -284,6 +295,7 @@ narray -- should be null when this routine is called, should be non-null and fil
 	        fprintf(stderr,"   LEN %d DataStart %d UnusedBits %d #Bits %d nx %d ny %d\n",
 		    BDS_LEN(bds), BDS_DataStart(bds),BDS_UnusedBits(bds),
 		    BDS_NumBits(bds), nx, ny);*/
+                return_code = 15;
 		nxny = nx = i;
 		ny = 1;
 	    }
@@ -403,10 +415,19 @@ none
 {
 
     unsigned char *buffer;
-    int i, nx, ny;
-    long int len_grib, pos = 0, nxny, buffer_size, count = 1;
+    float *array;
+    double temp, rmin, rmax;
+    int i, nx, ny, file_arg;
+    long int len_grib, pos = 0, nxny, buffer_size, n_dump, count = 1;
     unsigned char *msg, *pds, *gds, *bms, *bds, *pointer;
-    int v_time = 0;
+    char line[200];
+    enum {BINARY, TEXT, IEEE, GRIB, NONE} output_type = NONE;
+    enum {DUMP_ALL, DUMP_RECORD, DUMP_POSITION, DUMP_LIST, INVENTORY} 
+	mode = INVENTORY;
+    long int dump = -1;
+    int verbose = 0, append = 0, v_time = 0, year_4 = 0, output_PDS_GDS = 0;
+    char *dump_file_name = "dump", open_parm[3];
+    int header = 1, return_code = 0;
     char level[130];
 
 /* Lots removed!  This was the "main()" routine from file wgrib.c. */
@@ -418,6 +439,8 @@ none
         return(-1);
     }
     buffer_size = BUFF_ALLOC0;
+
+    n_dump = 0;  
 
     for (;;) {
 	msg = seek_grib(input, &pos, &len_grib, buffer, MSEEK);
@@ -501,6 +524,7 @@ none
 	        fprintf(stderr,"   LEN %d DataStart %d UnusedBits %d #Bits %d nx %d ny %d\n",
 		    BDS_LEN(bds), BDS_DataStart(bds),BDS_UnusedBits(bds),
 		    BDS_NumBits(bds), nx, ny);*/
+                return_code = 15;
 		nxny = nx = i;
 		ny = 1;
 	    }
@@ -3007,7 +3031,7 @@ int setup_user_table(int center, int subcenter, int ptable)
     return 1;
 }
 
-/* static int msg_count = 0; */
+static int msg_count = 0;
 
 /* int PDS_date(unsigned char *pds, int option, int v_time) 
 / *

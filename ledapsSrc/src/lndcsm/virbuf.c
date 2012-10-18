@@ -28,9 +28,10 @@ return true;
 }
 bool virclose( vbuf_t* virbuf )
 {
+int status;
 virbuf->size=0;
 virbuf->current_line=0;
-close( virbuf->file );
+status= close( virbuf->file );
 free( virbuf->buffer );
 remove( virbuf->fname );
 free( virbuf->fname );
@@ -43,8 +44,6 @@ virbuf->size=0;
 virbuf->current_line=0;
 seek_addr= virbuf->blocking * virbuf->current_line * sizeof(float) ;
 seek_status= lseek(virbuf->file, seek_addr, SEEK_SET );
-if (seek_status == -1)
-    return false;
 return true;
 }
 bool virput( vbuf_t* virbuf, float value )
@@ -78,10 +77,8 @@ if ( line != virbuf->current_line )
   virbuf->current_line= line;
   seek_addr= virbuf->blocking * virbuf->current_line * sizeof(float) ;
   seek_status= lseek(virbuf->file, seek_addr, SEEK_SET );
-  if (seek_status == -1)
-      return false;
   n_read=read(virbuf->file,(char*)virbuf->buffer,virbuf->blocking*sizeof(float));
-  if ((virbuf->file==-1) || (n_read != virbuf->blocking * sizeof(float)))
+  if ( virbuf->file==-1 )
     { 
     sprintf(msgbuf,"*** error reading  file \"%s\"",virbuf->fname); 
     RETURN_ERROR(msgbuf,"virget", false);

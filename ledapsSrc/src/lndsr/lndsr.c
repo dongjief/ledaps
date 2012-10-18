@@ -1,11 +1,3 @@
-/**************************************************************************
-! Developers:
-  Modified on 9/20/2012 by Gail Schmidt, USGS EROS
-  Modified the packed QA band to be individual QA bands with pixels set to
-  on or off.  NOTE - this requires mods to downstream processing (lndsrbm)
-  as well, which uses and modifies the QA band.
-**************************************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -92,48 +84,55 @@ void sun_angles (short jday,float gmt,float flat,float flon,float *ts,float *fs)
 /* Functions */
 
 int main (int argc, const char **argv) {
-  Param_t *param = NULL;
-  Input_t *input = NULL,*input_b6 = NULL;
-  InputPrwv_t *prwv_input = NULL;
-  InputOzon_t *ozon_input = NULL;
-  Lut_t *lut = NULL;
-  Output_t *output = NULL;
-  int i,j,il, is,ib,i_aot,j_aot,ifree;
+  Param_t *param;
+  Input_t *input,*input_b6;
+  InputPrwv_t *prwv_input;
+  InputOzon_t *ozon_input;
+  InputMask_t *input_mask;
+  Lut_t *lut;
+  Output_t *output;
+  int i,j,k, il, is,ib,i_aot,j_aot,ifree;
   int il_start, il_end, il_ar, il_region, is_ar;
   int *line_out[NBAND_SR_MAX];
-  int *line_out_buf = NULL;
-  int ***line_in = NULL;
-  int **line_in_band_buf = NULL;
-  int *line_in_buf = NULL;
-  int ***line_ar = NULL;
-  int **line_ar_band_buf = NULL;
-  int *line_ar_buf = NULL;
-  int ***line_ar_stats = NULL;
-  int **line_ar_stats_band_buf = NULL;
-  int *line_ar_stats_buf = NULL;
-  int** b6_line = NULL;
-  int* b6_line_buf = NULL;
-  float *atemp_line = NULL;
-  int8** qa_line = NULL;
-  int8* qa_line_buf = NULL;
-  char **ddv_line = NULL;
-  char *ddv_line_buf = NULL;
+  int *line_out_buf;
+  int ***line_in;
+  int **line_in_band_buf;
+  int *line_in_buf;
+  int ***line_ar;
+  int **line_ar_band_buf;
+  int *line_ar_buf;
+  int ***line_ar_stats;
+  int **line_ar_stats_band_buf;
+  int *line_ar_stats_buf;
+  int** b6_line;
+  int* b6_line_buf;
+  float *atemp_line;
+  int8** qa_line;
+  int8* qa_line_buf;
+  char** mask_line;
+  char* mask_line_buf;
+  char **ddv_line;
+  char *ddv_line_buf;
   char **rot_cld[3],**ptr_rot_cld[3],**ptr_tmp_cld;
-  char **rot_cld_block_buf = NULL;
-  char *rot_cld_buf = NULL;
+  char **rot_cld_block_buf;
+  char *rot_cld_buf;
 
   Sr_stats_t sr_stats;
   Ar_stats_t ar_stats;
   Ar_gridcell_t ar_gridcell;
   int *prwv_in[NBAND_PRWV_MAX];
-  int *prwv_in_buf = NULL;
-  int *ozon_in = NULL;
+  int *prwv_in_buf;
+  int *ozon_in;
   
-  int nbpts;
+  int nbpts,ipt;
+  float faot1;
   int inter_aot[3];
+
+   float lamda[7]={486.,570.,660.,835.,1669.,0.,2207.};
+
   float scene_gmt;
 
-  Space_t *space = NULL;
+  Space_t *space;
   Space_def_t space_def;
   char *grid_name = "Grid";
   char *dem_name;
@@ -149,40 +148,51 @@ int main (int argc, const char **argv) {
   double sum_spres_anc,sum_spres_dem;
   int nb_spres_anc,nb_spres_dem;
   float ratio_spres;
-  float tmpflt_arr[4] /*,tmpflt */;
+  float tmpflt_arr[4],tmpflt;
   double coef;
   int tmpint;
   int nvalues,osize;
   int debug_flag;
 
-  sixs_tables_t sixs_tables;
-  float center_lat,center_lon;
-  char *charptr,tmpfilename[128];
-  FILE *fdtmp/*, *fdtmp2 */;
-  
-  short *dem_array;
-  int dem_available;
-  
-  cld_diags_t cld_diags;
-  	
-  float flat,flon/*,fts,ffs*/;
-  double delta_y,delta_x;
-  float adjust_north;
-  
-  float sum_value,sumsq_value;
-  int no_ozone_file;
-  short jday;
-  
-  /* Vermote additional variable declaration for the cloud mask May 29 2007 */
-  int anom;
-  float t6,t6s_seuil;
-  
-  float calcuoz(short jday,float flat);
-  float get_dem_spres(short *dem,float lat,float lon);
-  void swapbytes(void *val,int nbbytes);
+	sixs_tables_t sixs_tables;
+	int sixs_run;
+	char sixs_results_filename[256];
 
-  printf ("\nRunning lndsr ....\n");
-  debug_flag= DEBUG_FLAG;
+	float center_lat,center_lon;
+	float aot550;
+	
+	char *charptr,tmpfilename[128];
+	FILE *fdtmp,*fdtmp2;
+	
+	short *dem_array;
+	int dem_available;
+
+	float actual_rho_ray,actual_T_ray_up,actual_T_ray_down,actual_S_r;
+	float mus,muv,phi,tau_ray;
+	float rho_ray_P0,T_ray_down_P0,T_ray_up_P0,S_r_P0;
+	float tau_ray_sealevel[7]={0.16511,0.08614,0.04716,0.01835,0.00113,0.00037}; /* index=5 => band 7 */
+
+	cld_diags_t cld_diags;
+	
+float flat,flon,fts,ffs;
+double delta_y,delta_x;
+float adjust_north;
+
+float sum_value,sumsq_value;
+int no_ozone_file;
+short jday;
+
+/* Vermote additional variable declaration for the cloud mask May 29 2007 */
+int anom,it6;
+float t6,t6s_seuil;
+
+float calcuoz(short jday,float flat);
+float get_dem_spres(short *dem,float lat,float lon);
+void swapbytes(void *val,int nbbytes);
+
+
+
+ debug_flag= DEBUG_FLAG;
 
   no_ozone_file=0;
   
@@ -251,6 +261,13 @@ int main (int argc, const char **argv) {
    }
   }
 
+  /* Open input cloudmask */
+
+  if ( param->cloud_flag ) {
+    input_mask = OpenInputMask(param->cloud_mask_file);
+    if (input == (Input_t *)NULL) ERROR("bad input file", "main");
+    }
+
   /* Get Lookup table */
 
   lut = GetLut(param->lut_file_name, input->nband, &input->meta, &input->size);
@@ -259,7 +276,6 @@ int main (int argc, const char **argv) {
   /* Get space definition */
   if (!GetSpaceDefHDF(&space_def, param->input_file_name, grid_name))
     ERROR("getting space metadata from HDF file", "main");
-
   /* Setup Space */
   space = SetupSpace(&space_def);
   if (space == (Space_t *)NULL) 
@@ -269,21 +285,14 @@ int main (int argc, const char **argv) {
   if (!computeBounds( &bounds, space, input->size.s, input->size.l))
     ERROR("computing bounds", "main");
 
-  printf ("Number of input bands: %d\n", input->nband);
-  printf ("Number of input lines: %d\n", input->size.l);
-  printf ("Number of input samples: %d\n", input->size.s);
-
   /* Create and open output file */
+
   if (!CreateOutput(param->output_file_name))
     ERROR("creating output file", "main");
 
   output = OpenOutput(param->output_file_name, input->nband, input->meta.iband, 
                       &input->size);
   if (output == (Output_t *)NULL) ERROR("opening output file", "main");
-
-//  printf ("DEBUG input->nband: %d\n", input->nband);
-//  printf ("DEBUG output->nband_tot: %d\n", output->nband_tot);
-//  printf ("DEBUG lut->nband: %d\n", lut->nband);
 
   /* Open diagnostics files if needed */
 #ifdef DEBUG_AR
@@ -353,6 +362,18 @@ int main (int argc, const char **argv) {
     atemp_line = (float *)calloc((size_t)(input->size.s),sizeof(float));
     if (atemp_line == (float*)NULL)ERROR("allocating atemp line", "main");
 	 
+  /* Allocate memory for mask line */
+    if ( param->cloud_flag ) {
+    	mask_line = (char**)calloc((size_t)(lut->ar_region_size.l),sizeof(char *));
+    	if (mask_line == (char**)NULL)ERROR("allocating mask line", "main");
+    	mask_line_buf = (char*)calloc((size_t)(input_mask->size.s * lut->ar_region_size.l),sizeof(char));
+    	if (mask_line_buf == (char*)NULL)ERROR("allocating mask line buffer", "main");
+	 	for (il = 0; il < lut->ar_region_size.l; il++) {
+	 		mask_line[il]=mask_line_buf;
+			mask_line_buf += input->size.s;
+	 	}
+    }
+	 
   /* Allocate memory for ddv line */
     ddv_line = (char**)calloc((size_t)(lut->ar_region_size.l),sizeof(char *));
     if (ddv_line == (char**)NULL)ERROR("allocating ddv line", "main");
@@ -380,6 +401,7 @@ int main (int argc, const char **argv) {
 		rot_cld_buf+=input->size.s;
 	}
   }
+
 
   /* Allocate memory for ar_gridcell */
   ar_gridcell.nbrows=lut->ar_size.l;
@@ -432,6 +454,7 @@ int main (int argc, const char **argv) {
   line_ar_band_buf = (int **)calloc((size_t)(lut->ar_size.l * AERO_NB_BANDS), sizeof(int *));
   if (line_ar_band_buf == (int **)NULL) 
     ERROR("allocating aerosol line buffer (b)", "main");
+
 
   line_ar_buf = (int *)calloc((size_t)(lut->ar_size.l * lut->ar_size.s * AERO_NB_BANDS), 
                                sizeof(int));
@@ -597,13 +620,13 @@ int main (int argc, const char **argv) {
   sds_file_id = SDstart((char *)dem_name, DFACC_RDONLY);
   if (sds_file_id == HDF_ERROR) {
     ERROR("opening dem_file", "OpenDem");
-  }
+		   }
   sds_index=0;		   
   sds_id= SDselect(sds_file_id,sds_index);
   status=  SDgetinfo(sds_id, sds_name, &rank, dim_sizes, &data_type,&n_attrs);
-//  printf("DEBUG the name of the sds is %s\n",sds_name);
-//  printf("DEBUG the rank of the sds is %d\n",rank);
-//  printf("DEBUG the dimension of the sds is %d %d\n",dim_sizes[0],dim_sizes[1]);
+  printf("the name of the sds is %s\n",sds_name);
+  printf("the rank of the sds is %d\n",rank);
+  printf("the dimension of the sds is %d %d\n",dim_sizes[0],dim_sizes[1]);
   start[0]=0;
   start[1]=0;
   edges[0]=3600;
@@ -612,9 +635,10 @@ int main (int argc, const char **argv) {
   stride[1]=1;
   dem_array=(short *)malloc(DEM_NBLAT*DEM_NBLON*sizeof(short));
   status=SDreaddata(sds_id,start, stride, edges,dem_array);	   
+  printf("the status of the read is %d\n",status);
   if (status != 0 ) {
-      printf("Fatal error DEM file not read\n");
-      exit(EXIT_FAILURE);
+  printf("Fatal error DEM file not read\n");
+  exit(EXIT_FAILURE);
   }
   dem_available=1;
 
@@ -834,7 +858,7 @@ int main (int argc, const char **argv) {
 	if (allocate_mem_atmos_coeff(nbpts,&atmos_coef))
         ERROR("Allocating memory for atmos_coef", "main");
 
-    printf("Compute Atmos Params with aot550 = 0.01\n"); fflush(stdout);
+    printf("Compute Atmos Params with aot550=0.01\n"); fflush(stdout);
 	update_atmos_coefs(&atmos_coef,&ar_gridcell, &sixs_tables,line_ar, lut,input->nband, 1);
 
   /* Read input first time and compute clear pixels stats for internal cloud screening */
@@ -846,11 +870,7 @@ int main (int argc, const char **argv) {
 
   for (il = 0; il < input->size.l; il++) {
 	if (!(il%100)) 
-    {
-       printf("Cloud screening for line %d\r",il);
-       fflush(stdout);
-    }
-
+               { printf("Line %d\r",il); fflush(stdout); }
     /* Read each input band */
     for (ib = 0; ib < input->nband; ib++) {
       if (!GetInputLine(input, ib, il, line_in[0][ib]))
@@ -887,7 +907,7 @@ int main (int argc, const char **argv) {
 		if (!cloud_detection_pass1(lut, input->size.s, il, line_in[0], qa_line[0], b6_line[0], atemp_line,&cld_diags))
       		ERROR("running cloud detection pass 1", "main");
 
-  } // end for
+  }
   if (param->thermal_band) {
 	for (il=0;il<cld_diags.nbrows;il++) {
     	tmpint=(int)(scene_gmt/anc_ATEMP.timeres);
@@ -1077,17 +1097,24 @@ int main (int argc, const char **argv) {
         if (!GetInputLine(input, ib, il, line_in[il_region][ib]))
           ERROR("reading input data for a line (a)", "main");
       }
+
+    	if ( param->cloud_flag ) {
+/*	printf("reading acca\n");*/
+      	if (!GetInputMaskLine(input_mask, il, mask_line[il_region]))
+        		ERROR("reading input mask data for a line", "main");
+    	}
+
     }
 
     /* Compute the aerosol for the regions */
 
-//    printf("%d\n",il_ar); fflush(stdout);
+    printf("%d\n",il_ar); fflush(stdout);
 /*  printf("%d\r",il_ar); fflush(stdout);    */
 #ifdef DEBUG_AR
 	diags_il_ar=il_ar;
 #endif
-    if (!Ar(il_ar,lut, &input->size, line_in, ddv_line, line_ar[il_ar],
-        line_ar_stats[il_ar], &ar_stats, &ar_gridcell, &sixs_tables))
+    if (!Ar(il_ar,lut, &input->size, line_in, param->cloud_flag, mask_line, ddv_line,line_ar[il_ar], 
+	 			line_ar_stats[il_ar], &ar_stats,&ar_gridcell,&sixs_tables))
       ERROR("computing aerosl", "main");
 /***
 	Save dark target map in temporary file
@@ -1109,10 +1136,10 @@ int main (int argc, const char **argv) {
 	/***
 	Fill Gaps in the coarse resolution aerosol product for bands 1(0), 2(1) and 3(2)
 	**/
-//    printf("write Fill Gaps ..."); fflush(stdout);
+    printf("write Fill Gaps ..."); fflush(stdout);
    Fill_Ar_Gaps(lut, line_ar, 0);
 /*    printf("WARNING NOT FILLING GAPS IN THE AEROSOL");*/
-//    printf("Done\n"); fflush(stdout);
+    printf("Done\n"); fflush(stdout);
 /*
   Fill_Ar_Gaps(lut, line_ar, 1);
   Fill_Ar_Gaps(lut, line_ar, 2);
@@ -1138,10 +1165,7 @@ int main (int argc, const char **argv) {
 
   for (il = 0; il < input->size.l; il++) {
 	if (!(il%100)) 
-    {
-       printf("Processing surface reflectance for line %d\r",il);
-       fflush(stdout);
-    }
+               { printf("Line %d\r",il); fflush(stdout); }
     /* Re-read each input band */
 
     for (ib = 0; ib < input->nband; ib++) {
@@ -1152,9 +1176,21 @@ int main (int argc, const char **argv) {
      if (!GetInputLine(input_b6, 0, il, b6_line[0]))
        ERROR("reading input data for b6_line (1)", "main");
 
+
+    if ( param->cloud_flag ) {
+      if (!GetInputMaskLine(input_mask, il, mask_line[0]))
+        ERROR("reading input mask data for a line", "main");
+    }
     /* Compute the surface reflectance */
-  	if (!Sr(lut, input->size.s, il, line_in[0], line_out, &sr_stats))
- 	  ERROR("computing surface reflectance for a line", "main");
+	if (param->cloud_flag) {
+    	if (!Sr(lut, input->size.s, il, line_in[0], param->cloud_flag, mask_line[0],
+            line_out, &sr_stats))
+      		ERROR("computing surface reflectance for a line", "main");
+	} else {
+    	if (!Sr(lut, input->size.s, il, line_in[0], param->cloud_flag, (char *)NULL,
+            line_out, &sr_stats))
+      		ERROR("computing surface reflectance for a line", "main");
+	}
 
 /***
 	Read line from dark target temporary file
@@ -1167,103 +1203,106 @@ int main (int argc, const char **argv) {
 	 	loc.s=is;
 		j_aot=is/lut->ar_region_size.s;
 
-        /* Initialize all QA bands to off */
-        line_out[lut->nband+FILL][is] = QA_OFF;
-        line_out[lut->nband+DDV][is] = QA_OFF;
-        line_out[lut->nband+CLOUD][is] = QA_OFF;
-        line_out[lut->nband+CLOUD_SHADOW][is] = QA_OFF;
-        line_out[lut->nband+SNOW][is] = QA_OFF;
-        line_out[lut->nband+LAND_WATER][is] = QA_OFF;   /* land */
-        line_out[lut->nband+ADJ_CLOUD][is] = QA_OFF;
-
 		if (line_in[0][0][is] != lut->in_fill) {
+/* commented by Vermote 12/17/2010 after sucessfull debugging
+
+   		line_out[lut->nband][is]=ar_gridcell.spres[i_aot*lut->ar_size.s+j_aot];
+
+  */
+ 
 			ArInterp(lut, &loc, line_ar, inter_aot); 
 			line_out[lut->nband][is] = inter_aot[0];
-        /**
-        Set bits for internal cloud mask
-        bit 0: fill
-        bit 6: dense dark vegetation (DDV)
-        bit 8: SR-based cloud
-        bit 9: SR-based cloud shadow
-        bit 10: SR-based snow
-        bit 11: Spectral test-based land/water mask
-        bit 12: SR-based adjacent cloud
-        **/
-        if (ddv_line[0][is]&0x01)
-            line_out[lut->nband+DDV][is] = QA_ON;  /* set dark target bit */
-        if (ddv_line[0][is]&0x10)
-            line_out[lut->nband+LAND_WATER][is] = QA_OFF;  /* land */
-        else
-            line_out[lut->nband+LAND_WATER][is] = QA_ON;  /* water */
-        if (ddv_line[0][is]&0x20)
-            line_out[lut->nband+CLOUD][is] = QA_ON;  /* set internal cloud mask bit */
-#ifdef NOT_RESET_CLOUD_SHADOW_AND_ADJ_BITS
-//NOTE: The cloud shadow and adjacent cloud bits are reset to off after this
-//code snippet.  So, there is no need to implement this section of code unless
-//the reset code is removed at a later date.  Ultimately the cloud, cloud
-//shadow, and adjacent cloud bits are overwritten in lndsrbm as well.
-        if (ddv_line[0][is]&0x04)
-            line_out[lut->nband+ADJ_CLOUD][is] = QA_ON;  /* set internal adjacent cloud mask bit */
-        if (ddv_line[0][is]&0x40)
-            line_out[lut->nband+CLOUD_SHADOW][is] = QA_ON;  /* set internal cloud shadow mask bit */
-#endif
-        if (ddv_line[0][is]&0x80)
-            line_out[lut->nband+SNOW][is] = QA_ON;  /* set internal snow mask bit */
 
-	   	line_out[lut->nband+NB_DARK][is]=line_ar_stats[i_aot][0][j_aot];
-	  	line_out[lut->nband+AVG_DARK][is]=line_ar_stats[i_aot][1][j_aot];
-	   	line_out[lut->nband+STD_DARK][is]=line_ar_stats[i_aot][2][j_aot];
+
+			if (param->cloud_flag ) {
+				line_out[lut->nband+1][is]=0x00;   /* Valid data */
+				if (mask_line[0][is] == lut->cloud_cloud)
+					line_out[lut->nband+1][is] |= 0x04;  /* set cloud bit */
+				if (mask_line[0][is] == lut->cloud_land)
+					line_out[lut->nband+1][is] |= 0x20;  /* set land bit */
+				if (mask_line[0][is] == lut->cloud_snow)
+					line_out[lut->nband+1][is] |= 0x10;  /* set snow bit */
+				if (mask_line[0][is] == lut->cloud_shadow)
+					line_out[lut->nband+1][is] |= 0x08;  /* set shadow bit */
+			} else {
+	   		  line_out[lut->nband+1][is]=0x02;  /* QA indicates invalid QA bits */
+			}
+			if ((ddv_line[0][is]&0x01) == 1)
+				line_out[lut->nband+1][is] |= 0x40;  /* set dark target bit */
+/**
+Set bits for internal cloud mask
+bit 8: cloud
+bit 9: cloud shadow
+bit 10: snow
+bit 11: land/water mask
+bit 12: adjacent cloud
+**/
+		if (ddv_line[0][is]&0x10)
+			line_out[lut->nband+1][is] |= 0x0800;  /* set internal water mask bit */
+		else
+			line_out[lut->nband+1][is] &= 0xf7ff;  /* reset internal water mask bit */
+		if (ddv_line[0][is]&0x20)
+			line_out[lut->nband+1][is] |= 0x0100;  /* set internal cloud mask bit */
+		else
+			line_out[lut->nband+1][is] &= 0xfeff;  /* reset internal cloud mask bit */
+		if (ddv_line[0][is]&0x04)
+			line_out[lut->nband+1][is] |= 0x1000;  /* set adjacent cloud mask bit */
+		else
+			line_out[lut->nband+1][is] &= 0xefff;  /* reset adjacent cloud mask bit */
+		if (ddv_line[0][is]&0x40)
+			line_out[lut->nband+1][is] |= 0x0200;  /* set internal cloud shadow mask bit */
+		else
+			line_out[lut->nband+1][is] &= 0xfdff;  /* reset internal cloud shadow mask bit */
+		if (ddv_line[0][is]&0x80)
+			line_out[lut->nband+1][is] |= 0x0400;  /* set internal snow mask bit */
+		else
+		line_out[lut->nband+1][is] &= 0xfbff;  /* reset internal snow mask bit */
+	   	line_out[lut->nband+2][is]=line_ar_stats[i_aot][0][j_aot];
+	  	line_out[lut->nband+3][is]=line_ar_stats[i_aot][1][j_aot];
+	   	line_out[lut->nband+4][is]=line_ar_stats[i_aot][2][j_aot];
 		} else {
 	   	line_out[lut->nband][is]=lut->aerosol_fill;
-	   	line_out[lut->nband+FILL][is] = QA_ON;  /* set fill bit */
-	   	line_out[lut->nband+NB_DARK][is]=0;
-	  	line_out[lut->nband+AVG_DARK][is]=lut->in_fill;
-	   	line_out[lut->nband+STD_DARK][is]=lut->in_fill;
+	   	line_out[lut->nband+1][is]=0x03;  /* QA indicates fill value */
+	   	line_out[lut->nband+2][is]=0;
+	  	line_out[lut->nband+3][is]=lut->in_fill;
+	   	line_out[lut->nband+4][is]=lut->in_fill;
 		}
-
-        /* try to redo the cloud mask Vermote May 29 2007 */
-        /* reset cloud shadow and cloud adjacent bits - these are set
-           again in lndsrbm */
-        line_out[lut->nband+CLOUD_SHADOW][is] = QA_OFF;
-        line_out[lut->nband+ADJ_CLOUD][is] = QA_OFF;
+		/* try to redo the cloud mask Vermote May 29 2007 */
+/* reset cloud shadow and cloud adjacent bits */
+                line_out[lut->nband+1][is] &= 0xfdff;
+                line_out[lut->nband+1][is] &= 0xefff;
 				
 		anom=line_out[0][is]-line_out[2][is]/2.;
 		t6=b6_line[0][is]/100.+273.;
 		t6s_seuil=280.+(1000.*0.01);
-		if (( ( anom > 300 ) && ( line_out[4][is] > 300) && ( t6 < t6s_seuil) )
-           || ( (line_out[2][is] > 5000) && ( t6 < t6s_seuil)))
-			line_out[lut->nband+CLOUD][is] = QA_ON;  /* set internal cloud mask bit */
-        else
-            line_out[lut->nband+CLOUD][is] = QA_OFF;  /* reset internal cloud mask */
-    } /* for is */
-  /* Write each output band */
+/*		printf ("this is anom %d\n",anom);*/
+		if (( ( anom > 300 ) && ( line_out[4][is] > 300) && ( t6 < t6s_seuil) ) || ( (line_out[2][is] > 5000) && ( t6 < t6s_seuil)))
+		         {
+			line_out[lut->nband+1][is] |= 0x0100;  /* set internal cloud mask bit */
+/*		printf ("this is anom >300 and temperature %d %f\n",anom,t6);*/
+			}
+		else
+			line_out[lut->nband+1][is] &= 0xfeff;  /* reset internal cloud mask bit */
+		    
+	 }
+    /* Write each output band */
 
-  for (ib = 0; ib < output->nband_tot-3; ib++) {
-    if (ib >= lut->nband+FILL && ib <= lut->nband+ADJ_CLOUD) {
-       /* fill, DDV, cloud, cloud shadow, snow, land/water, and adjacent
-          cloud QA bands are all 8-bit products */
-      if (!PutOutputLineU8(output, ib, il, line_out[ib]))
-        ERROR("writing output data for a line", "main");
-    }
-    else {
+    for (ib = 0; ib < output->nband_tot-3; ib++) {
       if (!PutOutputLine(output, ib, il, line_out[ib]))
         ERROR("writing output data for a line", "main");
     }
   }
-  }  /* for il */
   printf("\n");
 	fclose(fdtmp);
 	unlink(tmpfilename); 
 	
-  /* Print the statistics, skip bands that don't exist */
+  /* Print the statistics */
 
   printf(" total pixels %ld\n", ((long)input->size.l * (long)input->size.s));
   printf(" aerosol coarse  nfill %ld  min  %d  max  %d\n", 
          ar_stats.nfill, ar_stats.ar_min, ar_stats.ar_max);
 
-//  for (ib = 0; ib < output->nband_tot; ib++) {
-  for (ib = 0; ib < lut->nband; ib++) {
-    if (output->sds_sr[ib].name != NULL)
+  for (ib = 0; ib < output->nband_tot; ib++) {
     printf(" sr %s  nfill %ld  nout_range %ld  min  %d  max  %d\n", 
             output->sds_sr[ib].name, 
 	    sr_stats.nfill[ib], sr_stats.nout_range[ib],
@@ -1272,7 +1311,7 @@ int main (int argc, const char **argv) {
   
   /* Write the output metadata */
   
-  if (!PutMetadata(output, input->nband, &input->meta, param, lut, &bounds))
+  if (!PutMetadata(output, input->nband, &input->meta, param,lut, &bounds))
     ERROR("writing the metadata", "main");
 
   /* Close input files */
@@ -1298,7 +1337,7 @@ int main (int argc, const char **argv) {
     ERROR("freeing input file stucture", "main");
 
   if (!FreeInput(input_b6)) 
-    ERROR("freeing input_b6 file stucture", "main");
+    ERROR("freeing input file stucture", "main");
 
   if (!FreeLut(lut)) 
     ERROR("freeing lut file stucture", "main");
@@ -1324,6 +1363,10 @@ int main (int argc, const char **argv) {
   if (param->thermal_band) {
   	free(b6_line[0]);
   	free(b6_line);
+  }
+  if (param->cloud_flag ) {
+    free(mask_line[0]);
+    free(mask_line);
   }
   free(ddv_line[0]);
   free(ddv_line);
@@ -1351,7 +1394,7 @@ int main (int argc, const char **argv) {
 
   /* All done */
 
-  printf ("lndsr complete.\n");
+  exit(EXIT_SUCCESS);
 
   return (EXIT_SUCCESS);
 }
@@ -1506,7 +1549,7 @@ C      / First loop for time/
 }
 
 float get_dem_spres(short *dem,float lat,float lon) {
-	int idem,jdem;
+	int i,j,idem,jdem;
 	float dem_spres;
 		
 	idem=(int)((DEM_LATMAX-lat)/DEM_DLAT+0.5);
@@ -1667,13 +1710,14 @@ int update_gridcell_atmos_coefs(int irow,int icol,atmos_t *atmos_coef,Ar_gridcel
 void sun_angles (short jday,float gmt,float flat,float flon,float *ts,float *fs) {
       
       double mst,tst,tet,et,ha,delta;
-      double dlat,amuzero,elev,az,caz,azim;
+      double dlat,dlon,amuzero,elev,az,caz,azim;
       
       double A1=.000075,A2=.001868,A3=.032077,A4=.014615,A5=.040849;
       double B1=.006918,B2=.399912,B3=.070257,B4=.006758;
       double B5=.000907,B6=.002697,B7=.001480;
       
       dlat=(double)flat*M_PI/180.;
+      dlon=(double)flon*M_PI/180.;
 		                  
 /*      
       SOLAR POSITION (ZENITHAL ANGLE ThetaS,AZIMUTHAL ANGLE PhiS IN DEGREES)

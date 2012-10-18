@@ -10,17 +10,6 @@
  Robert Wolfe
  Original Version.
 
- Revision 1.1 2012/10/18
- Gail Schmidt
- Modified PutMetadata* to mark the bits that are actually set and not set
-   (i.e. for lndcal, bit 6 actually isn't set and for lndth, bit 6 and fill
-    are the only pixels that are set).
-
- Revision 1.1 2012/08/01
- Gail Schmidt
- Modified OpenOutput to make sure the Output_t->buf array doesn't go past
-   NBAND_REFL_MAX.  Also, initialized Output_t->qabuf at the same time.
-
 !Team Unique Header:
   This software was developed by the MODIS Land Science Team Support 
   Group for the Laboratory for Terrestrial Physics (Code 922) at the 
@@ -66,8 +55,7 @@
 #include "error.h"
 
 #define SDS_PREFIX ("band")
-#define SDS_LNDCAL_QA ("lndcal_QA") 
-#define SDS_LNDTH_QA ("lndth_QA") 
+#define SDS_QA     ("lndcal_QA") 
 
 #define OUTPUT_PROVIDER ("DataProvider")
 #define OUTPUT_SAT ("Satellite")
@@ -161,11 +149,6 @@ Output_t *OpenOutput(char *file_name, int nband, int *iband,
 !Output Parameters:
  (returns)      'output' data structure or NULL when an error occurs
 
-!Revision:
-revision 1.0.0 9/12/2012
- - modified the application to write the thermal band QA bits to the output
-   thermal product and use lndth_qa for the band name vs. lndcal_qa
-
 !Team Unique Header:
 
  ! Design Notes:
@@ -230,17 +213,14 @@ revision 1.0.0 9/12/2012
   }
 
   this->open = false;
-  this->nband = nband_tot;
+  this->nband = nband_tot       ;
   this->size.l = size->l;
   this->size.s = size->s;
   for (ib = 0; ib < nband_tot; ib++) {
     this->sds[ib].name = (char *)NULL;
     this->sds[ib].dim[0].name = (char *)NULL;
     this->sds[ib].dim[1].name = (char *)NULL;
-    if (ib < nband)
-        this->buf[ib] = (int16 *)NULL;
-    else
-        this->qabuf = (unsigned char *)NULL;
+    this->buf[ib] = (int16 *)NULL;
   }
 
   /* Open file for SD access */
@@ -274,11 +254,7 @@ revision 1.0.0 9/12/2012
       }
     else
       {
-        /* Distinguish between the thermal and reflective file */
-        if (nband == 1)
-          sprintf(sds_name, "%s", SDS_LNDTH_QA);
-        else
-          sprintf(sds_name, "%s", SDS_LNDCAL_QA);
+      sprintf(sds_name, "%s", SDS_QA);
       }
     sds->name = DupString(sds_name);
     if (this->sds[ib].name == (char *)NULL) {
@@ -357,16 +333,9 @@ revision 1.0.0 9/12/2012
       sds = &this->sds[ib];
       if (sds->name != (char *)NULL) free(sds->name);
       if (ib < nband_setup) SDendaccess(sds->id);
+      if (this->buf[ib] != (int16 *)NULL) free(this->buf[ib]);
       if (sds->dim[0].name != (char *)NULL) free(sds->dim[0].name);
       if (sds->dim[1].name != (char *)NULL) free(sds->dim[1].name);
-      if (ib < nband)
-      {
-          if (this->buf[ib] != (int16 *)NULL) free(this->buf[ib]);
-      }
-      else
-      {
-          if (this->qabuf != (unsigned char *)NULL) free(this->qabuf);
-      }
     }
     SDend(this->sds_file_id);
     free(this->file_name);
@@ -523,8 +492,7 @@ bool PutOutputLine(Output_t *this, int iband, int iline, int *line)
   if (sizeof(int16) == sizeof(int))
     buf = (void *)line;
   else {
-    if ( (this->nband > 2 && iband<NBAND_REFL_MAX) ||
-         (this->nband == 2 && iband == 0)){
+    if ( iband<NBAND_REFL_MAX ){
       for (is = 0; is < this->size.s; is++) 
         this->buf[iband][is] = (int16)line[is];
       buf = (void *)this->buf[iband];
@@ -604,7 +572,7 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
      "\t3      Band 3 Data Saturation Flag (0 = valid data, 1 = saturated data)\n"
      "\t4      Band 4 Data Saturation Flag (0 = valid data, 1 = saturated data)\n"
      "\t5      Band 5 Data Saturation Flag (0 = valid data, 1 = saturated data)\n"
-     "\t6      Band 6 Data Saturation Flag (not set)\n"
+     "\t6      Band 6 Data Saturation Flag (0 = valid data, 1 = saturated data)\n"
      "\t7      Band 7 Data Saturation Flag (0 = valid data, 1 = saturated data)\n\0"};
 
   /* Check the parameters */
@@ -796,6 +764,7 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
   }
 
   for (ib = 0; ib < nband; ib++) {
+
     sprintf(long_name, lut->long_name_prefix_ref, meta->iband[ib]); 
     attr.type = DFNT_CHAR8;
     attr.nval = strlen(long_name);
@@ -868,6 +837,7 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
   }
 
   if (meta->inst != INST_MSS) {
+
     strcpy(long_name,"qa bitmap"); 
     attr.type = DFNT_CHAR8;
     attr.nval = strlen(long_name);
@@ -894,55 +864,17 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
     attr.name = OUTPUT_FILL_VALUE;
     dval[0] = 1;
     if (!PutAttrDouble(this->sds[qa_band].id, &attr, dval))
-      RETURN_ERROR("writing attribute (output fill value)","PutMetadata",false);
+      RETURN_ERROR("writing attribute (valid range ref)","PutMetadata",false);
 
     attr.type = DFNT_CHAR8;
     message=DupString(lndcal_QA);
     attr.nval = strlen(message);
     attr.name = "QAbitmap index\0";
     if (!PutAttrString(this->sds[qa_band].id, &attr, message))
-      RETURN_ERROR("writing attribute (lndcal QA)", "PutMetadata", false);
+      RETURN_ERROR("writing attribute (units ref)", "PutMetadata", false);
       }
   return true;
 }
-
-
-/* 
-!C******************************************************************************
-
-!Description: 'PutMetadata6' writes metadata to the output thermal file.
- 
-!Input Parameters:
- this           'output' data structure; the following fields are input:
-                   open
- geoloc         'geoloc' data structure; the following fields are input:
-                   (none)
- input          'input' data structure;  the following fields are input:
-                   (none)
-
-!Output Parameters:
- this           'output' data structure; the following fields are modified:
-                   (none)
- (returns)      status:
-                  'true' = okay
-		  'false' = error return
-
-!Revision 1.1 2012/08/01
- Gail Schmidt
- Modified to write metadata for the QA band
- Modified to write the saturation value for band 6
-
-!Team Unique Header:
-
- ! Design Notes:
-   1. This routine is currently a 'stub' and will be implemented later.
-   2. An error status is returned when:
-       a. the file is not open for access.
-   3. Error messages are handled with the 'RETURN_ERROR' macro.
-   4. 'OutputFile' must be called before this routine is called.
-
-!END****************************************************************************
-*/
  bool PutMetadata6(Output_t *this, Input_meta_t *meta, Lut_t *lut,Param_t *param)
 {
   Myhdf_attr_t attr;
@@ -954,27 +886,14 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
   char long_name[60];
   char est_gainbias[20];
   int nband=1;
-  int qa_band= 1;  /* 0-based */
-  char* message;
-  char lndth_QA[2000]=
-    {"\n\tBits are numbered from right to left(bit 0 = LSB, bit 7 = MSB):\n"
-     "\tBit    Description\n"
-     "\t0      Data Fill Flag (0 = valid data, 1 = invalid data)\n"
-     "\t1      Band 1 Data Saturation Flag (not set)\n"
-     "\t2      Band 2 Data Saturation Flag (not set)\n"
-     "\t3      Band 3 Data Saturation Flag (not set)\n"
-     "\t4      Band 4 Data Saturation Flag (not set)\n"
-     "\t5      Band 5 Data Saturation Flag (not set)\n"
-     "\t6      Band 6 Data Saturation Flag (0 = valid data, 1 = saturated data)\n"
-     "\t7      Band 7 Data Saturation Flag (not set)\n\0"};
 
   /* Check the parameters */
 
   if (!this->open)
-    RETURN_ERROR("file not open", "PutMetadata6", false);
+    RETURN_ERROR("file not open", "PutMetadata", false);
 
-  if (nband < 1  ||  nband > 1)   /* only one band for this product */
-    RETURN_ERROR("invalid number of thermal bands", "PutMetadata6", false);
+  if (nband < 1  ||  nband > NBAND_REFL_MAX)
+    RETURN_ERROR("invalid number of bands", "PutMetadata", false);
 
   /* Write the metadata */
 
@@ -986,7 +905,7 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
     attr.nval = strlen(string);
     attr.name = OUTPUT_PROVIDER;
     if (!PutAttrString(this->sds_file_id, &attr, string))
-      RETURN_ERROR("writing attribute (data provider)", "PutMetadata6", false);
+      RETURN_ERROR("writing attribute (data provider)", "PutMetadata", false);
   }
 
   if (meta->sat != SAT_NULL) {
@@ -995,7 +914,7 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
     attr.nval = strlen(string);
     attr.name = OUTPUT_SAT;
     if (!PutAttrString(this->sds_file_id, &attr, string))
-      RETURN_ERROR("writing attribute (satellite)", "PutMetadata6", false);
+      RETURN_ERROR("writing attribute (satellite)", "PutMetadata", false);
   }
 
   if (meta->inst != INST_NULL) {
@@ -1004,38 +923,38 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
     attr.nval = strlen(string);
     attr.name = OUTPUT_INST;
     if (!PutAttrString(this->sds_file_id, &attr, string))
-      RETURN_ERROR("writing attribute (instrument)", "PutMetadata6", false);
+      RETURN_ERROR("writing attribute (instrument)", "PutMetadata", false);
   }
 
   if (!FormatDate(&meta->acq_date, DATE_FORMAT_DATEA_TIME, date))
-    RETURN_ERROR("formating acquisition date", "PutMetadata6", false);
+    RETURN_ERROR("formating acquisition date", "PutMetadata", false);
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(date);
   attr.name = OUTPUT_ACQ_DATE;
   if (!PutAttrString(this->sds_file_id, &attr, date))
-    RETURN_ERROR("writing attribute (acquisition date)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (acquisition date)", "PutMetadata", false);
 
   if (!FormatDate(&meta->prod_date, DATE_FORMAT_DATEA_TIME, date))
-    RETURN_ERROR("formating production date", "PutMetadata6", false);
+    RETURN_ERROR("formating production date", "PutMetadata", false);
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(date);
   attr.name = OUTPUT_L1_PROD_DATE;
   if (!PutAttrString(this->sds_file_id, &attr, date))
-    RETURN_ERROR("writing attribute (production date)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (production date)", "PutMetadata", false);
 
   attr.type = DFNT_FLOAT32;
   attr.nval = 1;
   attr.name = OUTPUT_SUN_ZEN;
   dval[0] = (double)meta->sun_zen * DEG;
   if (!PutAttrDouble(this->sds_file_id, &attr, dval))
-    RETURN_ERROR("writing attribute (solar zenith)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (solar zenith)", "PutMetadata", false);
 
   attr.type = DFNT_FLOAT32;
   attr.nval = 1;
   attr.name = OUTPUT_SUN_AZ;
   dval[0] = (double)meta->sun_az * DEG;
   if (!PutAttrDouble(this->sds_file_id, &attr, dval))
-    RETURN_ERROR("writing attribute (solar azimuth)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (solar azimuth)", "PutMetadata", false);
 
   if (meta->wrs_sys != WRS_NULL) {
 
@@ -1044,21 +963,21 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
     attr.nval = strlen(string);
     attr.name = OUTPUT_WRS_SYS;
     if (!PutAttrString(this->sds_file_id, &attr, string))
-      RETURN_ERROR("writing attribute (WRS system)", "PutMetadata6", false);
+      RETURN_ERROR("writing attribute (WRS system)", "PutMetadata", false);
 
     attr.type = DFNT_INT16;
     attr.nval = 1;
     attr.name = OUTPUT_WRS_PATH;
     dval[0] = (double)meta->ipath;
     if (!PutAttrDouble(this->sds_file_id, &attr, dval))
-      RETURN_ERROR("writing attribute (WRS path)", "PutMetadata6", false);
+      RETURN_ERROR("writing attribute (WRS path)", "PutMetadata", false);
 
     attr.type = DFNT_INT16;
     attr.nval = 1;
     attr.name = OUTPUT_WRS_ROW;
     dval[0] = (double)meta->irow;
     if (!PutAttrDouble(this->sds_file_id, &attr, dval))
-      RETURN_ERROR("writing attribute (WRS row)", "PutMetadata6", false);
+      RETURN_ERROR("writing attribute (WRS row)", "PutMetadata", false);
   }
 
   attr.type = DFNT_INT8;
@@ -1066,14 +985,14 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
   attr.name = OUTPUT_NBAND;
   dval[0] = (double)nband;
   if (!PutAttrDouble(this->sds_file_id, &attr, dval))
-    RETURN_ERROR("writing attribute (number of bands)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (number of bands)", "PutMetadata", false);
 
   attr.type = DFNT_INT8;
   attr.nval = nband;
   attr.name = OUTPUT_BANDS;
   dval[0] = (double)meta->iband_th;
   if (!PutAttrDouble(this->sds_file_id, &attr, dval))
-    RETURN_ERROR("writing attribute (band numbers)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (band numbers)", "PutMetadata", false);
 
   /* Added 9/15/05 when replace zero gain/bias with the estimated values for TM thermal band-6   */
   if (param->est_gainbias == 1){
@@ -1082,7 +1001,7 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
      attr.nval = strlen(est_gainbias);
      attr.name = OUTPUT_EST_GAIN_BIAS;
      if (!PutAttrString(this->sds_file_id, &attr, est_gainbias))
-       RETURN_ERROR("writing attribute (iestimated Gain/Bias)", "PutMetadata6", false);
+       RETURN_ERROR("writing attribute (iestimated Gain/Bias)", "PutMetadata", false);
   }
 
   /* Get the short name, local granule id and production date/time */
@@ -1091,52 +1010,52 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
              meta->wrs_sys, meta->ipath, meta->irow, 
              short_name, local_granule_id, production_date))
     RETURN_ERROR("creating the short name and local granule id", 
-                 "PutMetadata6", false);
+                 "PutMetadata", false);
 
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(short_name);
   attr.name = OUTPUT_SHORT_NAME;
   if (!PutAttrString(this->sds_file_id, &attr, short_name))
-    RETURN_ERROR("writing attribute (short name)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (short name)", "PutMetadata", false);
 
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(local_granule_id);
   attr.name = OUTPUT_LOCAL_GRAN_ID;
   if (!PutAttrString(this->sds_file_id, &attr, local_granule_id))
-    RETURN_ERROR("writing attribute (local granule id)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (local granule id)", "PutMetadata", false);
 
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(production_date);
   attr.name = OUTPUT_PROD_DATE;
   if (!PutAttrString(this->sds_file_id, &attr, production_date))
-    RETURN_ERROR("writing attribute (production date)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (production date)", "PutMetadata", false);
 
-  if (sprintf(pge_ver, "%s", param->PGEVersion) < 0) RETURN_ERROR("creating PGE Version","PutMetadata6", false);
+  if (sprintf(pge_ver, "%s", param->PGEVersion) < 0) RETURN_ERROR("creating PGE Version","PutMetadata", false);
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(pge_ver);
   attr.name = OUTPUT_PGEVERSION;
   if (!PutAttrString(this->sds_file_id, &attr, pge_ver))
-    RETURN_ERROR("writing attribute (PGE Version)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (PGE Version)", "PutMetadata", false);
 
-  if (sprintf(process_ver, "%s", param->ProcessVersion) < 0) RETURN_ERROR("creating ProcessVersion","PutMetadata6", false);
+  if (sprintf(process_ver, "%s", param->ProcessVersion) < 0) RETURN_ERROR("creating ProcessVersion","PutMetadata", false);
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(process_ver);
   attr.name = OUTPUT_PROCESSVERSION;
   if (!PutAttrString(this->sds_file_id, &attr, process_ver))
-    RETURN_ERROR("writing attribute (Process Version)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (Process Version)", "PutMetadata", false);
 
   sprintf(long_name, lut->long_name_prefix_th, meta->iband_th); 
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(long_name);
   attr.name = OUTPUT_LONG_NAME;
   if (!PutAttrString(this->sds[0].id, &attr, long_name))
-    RETURN_ERROR("writing attribute (long name)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (long name)", "PutMetadata", false);
 
   attr.type = DFNT_CHAR8;
   attr.nval = strlen(lut->units_th);
   attr.name = OUTPUT_UNITS;
   if (!PutAttrString(this->sds[0].id, &attr, lut->units_th))
-    RETURN_ERROR("writing attribute (units th)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (units th)", "PutMetadata", false);
 
   attr.type = DFNT_INT16;
   attr.nval = 2;
@@ -1144,93 +1063,49 @@ bool PutMetadata(Output_t *this, int nband, Input_meta_t *meta, Lut_t *lut, Para
   dval[0] = (double)lut->valid_range_th[0];
   dval[1] = (double)lut->valid_range_th[1];
   if (!PutAttrDouble(this->sds[0].id, &attr, dval))
-    RETURN_ERROR("writing attribute (valid range th)","PutMetadata6",false);
+    RETURN_ERROR("writing attribute (valid range th)","PutMetadata",false);
 
   attr.type = DFNT_INT16;
   attr.nval = 1;
   attr.name = OUTPUT_FILL_VALUE;
   dval[0] = (double)lut->out_fill;
   if (!PutAttrDouble(this->sds[0].id, &attr, dval))
-    RETURN_ERROR("writing attribute (valid range th)","PutMetadata6",false);
-
-  attr.type = DFNT_INT16;
-  attr.nval = 1;
-  attr.name = OUTPUT_SATU_VALUE;
-  dval[0] = (double)lut->out_satu;
-  if (!PutAttrDouble(this->sds[0].id, &attr, dval))
-  RETURN_ERROR("writing attribute (saturate value ref)","PutMetadata6",false);
+    RETURN_ERROR("writing attribute (valid range th)","PutMetadata",false);
 
   attr.type = DFNT_FLOAT64;
   attr.nval = 1;
   attr.name = OUTPUT_SCALE_FACTOR;
   dval[0] = (double)lut->scale_factor_th;
   if (!PutAttrDouble(this->sds[0].id, &attr, dval))
-    RETURN_ERROR("writing attribute (scale factor th)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (scale factor th)", "PutMetadata", false);
 
   attr.type = DFNT_FLOAT64;
   attr.nval = 1;
   attr.name = OUTPUT_ADD_OFFSET;
   dval[0] = (double)lut->add_offset_th;
   if (!PutAttrDouble(this->sds[0].id, &attr, dval))
-    RETURN_ERROR("writing attribute (add offset th)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (add offset th)", "PutMetadata", false);
 
   attr.type = DFNT_FLOAT64;
   attr.nval = 1;
   attr.name = OUTPUT_SCALE_FACTOR_ERR;
   dval[0] = (double)lut->scale_factor_err_th;
   if (!PutAttrDouble(this->sds[0].id, &attr, dval))
-    RETURN_ERROR("writing attribute (scale factor err th)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (scale factor err th)", "PutMetadata", false);
 
   attr.type = DFNT_FLOAT64;
   attr.nval = 1;
   attr.name = OUTPUT_ADD_OFFSET_ERR;
   dval[0] = (double)lut->add_offset_err_th;
   if (!PutAttrDouble(this->sds[0].id, &attr, dval))
-    RETURN_ERROR("writing attribute (add offset err th)", "PutMetadata6", false);
+    RETURN_ERROR("writing attribute (add offset err th)", "PutMetadata", false);
 
   attr.type = DFNT_FLOAT32;
   attr.nval = 1;
   attr.name = OUTPUT_CALIBRATED_NT;
   dval[0] = (double)lut->calibrated_nt_th;
   if (!PutAttrDouble(this->sds[0].id, &attr, dval))
-    RETURN_ERROR("writing attribute (calibrated nt th)","PutMetadata6",false);
-
-  if (meta->inst != INST_MSS) {
-    strcpy(long_name,"qa bitmap");
-    attr.type = DFNT_CHAR8;
-    attr.nval = strlen(long_name);
-    attr.name = OUTPUT_LONG_NAME;
-    if (!PutAttrString(this->sds[qa_band].id, &attr, long_name))
-      RETURN_ERROR("writing attribute (long name)", "PutMetadata6", false);
-
-    attr.type = DFNT_CHAR8;
-    attr.nval = strlen(QA_BITS_UNITS);
-    attr.name = OUTPUT_UNITS;
-    if (!PutAttrString(this->sds[qa_band].id, &attr, QA_BITS_UNITS))
-      RETURN_ERROR("writing attribute (units ref)", "PutMetadata6", false);
-
-    attr.type = DFNT_INT16;
-    attr.nval = 2;
-    attr.name = OUTPUT_VALID_RANGE;
-    dval[0] = 0;
-    dval[1] = 255;
-    if (!PutAttrDouble(this->sds[qa_band].id, &attr, dval))
-      RETURN_ERROR("writing attribute (valid range ref)","PutMetadata6",false);
-
-    attr.type = DFNT_INT16;
-    attr.nval = 1;
-    attr.name = OUTPUT_FILL_VALUE;
-    dval[0] = 1;
-    if (!PutAttrDouble(this->sds[qa_band].id, &attr, dval))
-      RETURN_ERROR("writing attribute (output fill value)","PutMetadata6",false);
-
-    attr.type = DFNT_CHAR8;
-    message=DupString(lndth_QA);
-    attr.nval = strlen(message);
-    attr.name = "QAbitmap index\0";
-    if (!PutAttrString(this->sds[qa_band].id, &attr, message))
-      RETURN_ERROR("writing attribute (lndcal QA)", "PutMetadata6", false);
-  }
+    RETURN_ERROR("writing attribute (calibrated nt th)","PutMetadata",false);
 
   return true;
 }

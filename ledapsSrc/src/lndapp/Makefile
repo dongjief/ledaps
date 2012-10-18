@@ -5,14 +5,14 @@
 #
 ##!END
 #############################################################################
-CC = gcc
-CFLAGS = -Wall
+CC = gcc -m32
+CFLAGS = -w
 
 TARGET = lndapp
 
-INC = -I. -I$(HDFINC) -I$(HDFEOS_INC) -I$(GCTPINC)
+INC = -I. -I$(HDFINC) -I$(HDFEOS_INC)
 
-LIB = -L$(GCTPLIB) -lgctp -L$(HDFEOS_LIB) -lhdfeos \
+LIB = -L$(HDFEOS_LIB) -lhdfeos -lgctp\
       -L$(HDFLIB) -lmfhdf -ldf -ljpeg -lz -lm
 
 OBJ = lndapp.o
