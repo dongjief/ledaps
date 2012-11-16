@@ -1,3 +1,5 @@
+#summary Version 1.0.0 (initial release) of the LEDAPS software.
+
 == Ledaps Version 1.0.0 Release Notes ==
 Release Date: July 26, 2012
 
