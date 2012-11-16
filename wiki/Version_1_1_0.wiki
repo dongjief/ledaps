@@ -41,3 +41,6 @@ Same dependencies as for Version 1.0.0
 
   * bin
     # Added a do_ledaps.py script for better scripting control.
+
+  * other
+    # Added the GCMDEM.hdf file and the GOLD/GNEW ancillary files to the Downloads page.
