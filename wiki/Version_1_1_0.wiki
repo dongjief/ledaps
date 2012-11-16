@@ -24,12 +24,11 @@ Release Date: November 16, 2012
 
 === Product Guide ===
 
-
 == Changes From Previous Version ==
 ====Updates on November 16, 2012 - USGS EROS====
   * lndpm
     # Modified to DIE vs. WARN if the ancillary products (REANALYSIS, EP/TOMS, or DEM) do not exist.
-- Modified the metadata filename to be *.metadata.txt vs. *.carbon_met.txt.
+    # Modified the metadata filename to be *.metadata.txt vs. *.carbon_met.txt.
 
   * lndsr
     # Modified to make sure no other QA bits are set on if the current pixel is a fill pixel.
