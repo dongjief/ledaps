@@ -13,10 +13,10 @@ Release Date: November 16, 2012
 
 
 === Installation ===
-  # Same installation instructions as for Version 1.0.0
+Same installation instructions as for Version 1.0.0
 
 === Dependencies ===
-  # Same dependencies as for Version 1.0.0
+Same dependencies as for Version 1.0.0
 
 === Verification Data ===
 
