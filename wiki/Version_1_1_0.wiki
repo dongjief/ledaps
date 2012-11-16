@@ -1,13 +1,64 @@
-#summary One-sentence summary of this page.
+#summary Version 1.1.0 of the LEDAPS software.
 
-= Introduction =
+== Ledaps Version 1.1.0 Release Notes ==
+Release Date: November 16, 2012
 
-Add your content here.
+=== Downloads ===
+
+* Ledaps source code - available via the [http://code.google.com/p/ledaps/source/checkout LEDAPS Google Projects Source] link
+
+* [http://landsat.usgs.gov/espa/files/ledaps_anc_1980-2012.tar.gz Ledaps ancillaries]
+
+* Ledaps ancillary update scripts
 
 
-= Details =
+=== Installation ===
+  # Same installation instructions as for Version 1.0.0
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+=== Dependencies ===
+  # Same dependencies as for Version 1.0.0
+
+=== Verification Data ===
+
+=== User Manual ===
+
+=== Product Guide ===
+
+
+== Changes From Previous Version ==
+====Updates on October 17, 2012 - USGS EROS====
+  * lndpm
+    # lndcsm is no longer called as part of the surface reflectance processing; the internal surface reflectance cloud mask is used instead.  Therefore the cloud snow/mask is no longer sent as a parameter for lndsr.
+    # Updated lndpm based on mods provided by Feng Gao from 1/18/2012.
+      * Restores the solar zenith angle bug fix from the past for NLAP_W0 format (Greg Ederer)
+      * Fixes a bug when writing the UTM zone (south) into the ENVI hdr file (Greg Ederer)
+      * Added processing for Landsat-4 TM (Feng Gao)
+    # Updated the metadata tags to work with the newly released LPGS metadata as well as continuing to support the old metadata tags.
+    # Cleaned up warning messages from compilation.
+    # Reset the version to 1.0.0 as this is our first official version of LEDAPS for the ESPA system.
+    # Changed the _Data Provider_ metadata tag to USGS/EROS.
+
+  * lndcal
+    # Modified calibration of band 6 to flag the saturated thermal pixels in the output brightness temperature product.  This is consistent with flagging the saturated pixels in the reflective bands.
+    # Modified lndcal to write the QA bits for the lndth product (brightness temperature product), including appropriate metadata for the QA band.  The QA bits include flags for both fill pixels and for saturated band 6 pixels, consistent with the QA bits for the reflective bands in the lndcal output.
+    # Cleaned up some compiler warnings and minor bugs when freeing some of the data arrays.
+    # Reset the version to 1.0.0 as this is our first official version of LEDAPS for the ESPA system.
+
+  * lndcsm
+    # No longer use the source code as part of the ESPA LEDAPS processing flow.
+
+  * lndsr
+    # Cleaned up some compiler warnings and minor bugs when freeing some of the data arrays.
+    # Updated the metadata output to include the surface reflectance based QA bits.
+    # Reset the version to 1.0.0 as this is our first official version of LEDAPS for the ESPA system.
+    # Removed lndcsm input for cloud mask.  Will use only the internal cloud mask.
+    # QA bits are no longer output as a packed set of bits, but instead a separate band is written for the cloud, shadow, fill, etc. QA information and each pixel is either on or off.
+    # Cleaned up some of the screen outputs to make the information more concise.
+
+  * lndsrbm
+    # cmrbv1.0.f used a hard coded pixel size of 28.5.  This has been modified to use the pixel size read from the scene metadata.
+    # Updated to handle the new single QA bands vs. the previous packed bit QA band.
+    # Cleaned up some of the screen outputs to make the information more concise.
+
+  * bin
+    # Modified do_ledaps.csh to no longer call lndcsm as part of the LEDAPS processing flow.
