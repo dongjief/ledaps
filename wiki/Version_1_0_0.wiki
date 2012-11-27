@@ -14,7 +14,7 @@ Release Date: July 26, 2012
 
 === Installation ===
   # Install dependent libraries - HDF-EOS GCTP, HDF4, HDF-EOS2, TIFF, GeoTIFF
-  # Set up environment.  Can look at and modify ledapsSrc/src/env.sh or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.
+  # Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.
 {{{
     export HDFEOS_GCTPINC="path_to_HDF-EOS_GCTP_include_files"
     export HDFEOS_GCTPLIB="path_to_HDF-EOS_GCTP_libraries"
