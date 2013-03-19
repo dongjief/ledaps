@@ -27,7 +27,7 @@ Same dependencies as for Version 1.0.0
 == Changes From Previous Version ==
 ====Updates on March 20, 2013 - USGS EROS====
   * lndpm
-    # Modified to utilize a single Version value version supporting two version tags with the same value.  This new tag will be 'LEDAPSVersion'.
+    # Modified to utilize a single Version value version supporting two version tags with the same value.  This new tag will be LEDAPSVersion.
     # Modified LPGS and NLAPS WO sections to read the scene center time from the MTL or WO file and pass that time along as the ACQUISITION_TIME in the .metadata.txt file.  Previously a time of 00:00:00.000Z was used instead of the actual scene time.  This means that the lndsr and lndsrbm applications will have the actual scene time for processing versus approximating the scene time.  The actual scene time should also be posted in the lndcal.hdf, lndth.hdf, and lndsr.hdf files with this change.  The scene time is used to obtain the appropriate atmospheric correction information from the various auxiliary files.  <b>This modification will produce differences in the output surface reflectance values from previously processed scenes.</b>
     # Modified to support the processing of polar stereographic products (polar regions) for LPGS and NLAPS WO products.
 
@@ -40,10 +40,10 @@ Same dependencies as for Version 1.0.0
     # Modified to support the processing of polar stereographic products.
 
   * lndsr
-    # Fixed the issue with the sun angles having an additional 0.5 added to their value incorrectly.
+    # Fixed the issue with the sun angles having an additional 0.5 incorrectly added to their value (leftover from integer rounding).
     # Modified to utilize a single Version tag versus the current practice of having two tags with the same version number.  LEDAPSVersion will be used.
     # Modified to support the processing of polar stereographic products, including reading the projection parameters from the lndcal.hdf metadata.
-    # Removed NumberOfBands and BandNumbers from the lndsr output metadata.  These fields only apply to the surface reflectance bands themselves and don't fully represent the final output bands for the lndsr product, therefore potentially leading to user confusion.
+    # Removed NumberOfBands and BandNumbers from the lndsr HDF metadata.  These fields only apply to the surface reflectance bands themselves and don't fully represent the final output bands for the lndsr product, therefore potentially leading to user confusion.
     # Acquisition time is read from the lndcal.hdf metadata and used if available versus estimating the scene time.
 
   * lndsrbm
