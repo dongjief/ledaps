@@ -27,7 +27,9 @@ Same dependencies as for Version 1.0.0
 == Changes From Previous Version ==
 ====Updates on March 20, 2013 - USGS EROS====
   * lndpm
-    # Added META_FILE field to the lndsr parameter file which provides the filename of the L1G/L1T metadata file, containing valuable information for some of the data users.
+    # Modified to utilize a single Version value version supporting two version tags with the same value.  Migrating to LEDAPSVersion.
+    # Modified LPGS and NLAPS WO sections to read the scene center time from the MTL or WO file and pass that time along as the ACQUISITION_TIME in the .metadata.txt file.  This means that the lndsr and lndsrbm applications will have the actual scene time for processing versus approximating the scene time.  The scene time is used to obtain the appropriate atmospheric correction information from the various auxiliary files.
+    # Modified to support the processing of polar stereographic products (polar regions) for LPGS and NLAPS WO products.
 
   * lndsr
     # Modified the data fields in the output metadata to be one-based so they align with the metadata fields appended in lndapp.
