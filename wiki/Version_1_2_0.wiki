@@ -33,6 +33,7 @@ Same dependencies as for Version 1.0.0
 
   * lndcal
     # Modified to utilize a single Version tag versus the current practice of having two tags with the same version number.  LEDAPSVersion will be used.
+    # Modified the application to calculate and write the bounding coordinates as output metadata to the lndcal.hdf file, similar to the metadata in lndsr.hdf.
     # Modified to read the acquisition time from the input metadata file and pass the acquisition time along for processing.  If the date string is too long, then the last few digits from the seconds (acquisition time is in DMS) will be removed.
     # Modified to support the processing of polar stereographic products, including reading the projection parameters from the input metadata file and writing those to the lndcal.hdf and lndth.hdf metadata.
 
