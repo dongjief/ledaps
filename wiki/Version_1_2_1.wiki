@@ -1,0 +1,34 @@
+#summary Version 1.2.1 of the LEDAPS software.
+
+== Ledaps Version 1.2.1 Release Notes ==
+Release Date: April 22, 2013
+
+=== Downloads ===
+
+* Ledaps source code - available via the [http://code.google.com/p/ledaps/source/checkout LEDAPS Google Projects Source] link
+
+* [http://landsat.usgs.gov/espa/files/ledaps_anc_1980-2012.tar.gz Ledaps ancillaries]
+
+* Ledaps ancillary update scripts
+
+
+=== Installation ===
+Same installation instructions as for Version 1.0.0
+
+=== Dependencies ===
+Same dependencies as for Version 1.0.0
+
+=== Verification Data ===
+
+=== User Manual ===
+
+=== Product Guide ===
+
+== Changes From Previous Version ==
+====Updates on April 22, 2013 - USGS EROS====
+  * lndcal
+    # Modified to output the UL and LR corner lat/longs.  The bounding coords are already being written, however for ascending scenes and scenes in the polar regions, the scenes are flipped upside down.  The bounding coords will be correct in North represents the northernmost latitude and South represents the southernmost latitude.  However, the UL corner in this case would be more south than the LR corner.  Comparing the UL and LR corners will allow the user to determine if the scene is flipped.
+
+  * lndsr
+    # Modified to output the UL and LR corner lat/longs.  The bounding coords are already being written, however for ascending scenes and scenes in the polar regions, the scenes are flipped upside down.  The bounding coords will be correct in North represents the northernmost latitude and South represents the southernmost latitude.  However, the UL corner in this case would be more south than the LR corner. Comparing the UL and LR corners will allow the user to determine if the scene is flipped.
+    # Adjusted the sun azimuth for polar scenes which are ascending/flipped.  The sun azimuth is north up, but these scenes are south up.  So the azimuth needs to be adjusted by 180 degrees when applied to the scene.
