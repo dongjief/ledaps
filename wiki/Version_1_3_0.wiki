@@ -9,7 +9,7 @@ Release Date: July 12, 2013
 
 * [http://landsat.usgs.gov/espa/files/ledaps_anc_1980-2012.tar.gz Ledaps ancillaries]
 
-* Ledaps ancillary update scripts
+* Ledaps ancillary update scripts - found in the LedapsAncSrc directory of the LEDAPS download.
 
 
 === Installation ===
