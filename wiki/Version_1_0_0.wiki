@@ -6,7 +6,6 @@ Release Date: July 26, 2012
 === Downloads ===
 
 * Ledaps source code - available via the [http://code.google.com/p/ledaps/source/checkout LEDAPS Google Projects Source] link
-
   * Non-members may check out a read-only working copy anonymously over HTTP.
   * svn checkout http://ledaps.googlecode.com/svn/tags/version_1.3.1 ledaps-read-only 
 
