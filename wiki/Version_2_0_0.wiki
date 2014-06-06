@@ -16,10 +16,10 @@ Release Date: June 6, 2014
 
 
 === Installation ===
-Same installation instructions as for Version 1.0.0
+Same installation instructions as for Version 1.0.0 with the addition of the ESPA raw binary libraries and tools in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the LEDAPS application.
 
 === Dependencies ===
-Same dependencies as for Version 1.0.0
+Same dependencies as for Version 1.0.0 with the addition of the ESPA raw binary libraries and tools in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the LEDAPS application.
 
 === Verification Data ===
 
