@@ -4,7 +4,6 @@
 Release Date: June 6, 2014
 
 === Downloads ===
-
 * Ledaps source code - available via the [http://code.google.com/p/ledaps/source/checkout LEDAPS Google Projects Source] link
 
   * Non-members may check out a read-only working copy anonymously over HTTP.
@@ -14,12 +13,17 @@ Release Date: June 6, 2014
 
 * Ledaps ancillary update scripts - found in the LedapsAncSrc directory of the LEDAPS download.
 
-
 === Installation ===
 Same installation instructions as for Version 1.0.0 with the addition of the ESPA raw binary libraries and tools in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the LEDAPS application.
 
 === Dependencies ===
 Same dependencies as for Version 1.0.0 with the addition of the ESPA raw binary libraries and tools in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the LEDAPS application.
+
+=== Data Preprocessing ===
+This version of the LEDAPS application requires the input Landsat products to be in the ESPA internal file format.  After compiling the espa-common raw_binary libraries and tools, the convert_lpgs_to_espa command-line tool can be used to create the ESPA internal file format for input to the LEDAPS application.
+
+=== Data Postprocessing ===
+After compiling the espa-common raw_binary libraries and tools, the convert_espa_to_gtif and convert_espa_to_hdf command-line tools can be used to convert the ESPA internal file format to HDF or GeoTIFF.  Otherwise the data will remain in the ESPA internal file format, which includes each band in the ENVI file format (i.e. raw binary file with associated ENVI header file) and an overall XML metadata file.
 
 === Verification Data ===
 
