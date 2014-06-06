@@ -33,19 +33,22 @@ After compiling the espa-common raw_binary libraries and tools, the convert_espa
 
 == Changes From Previous Version ==
 ====Updates on June 6, 2014 - USGS EROS====
+  * Overall
+    # Input products are expected to be Landsat products from LPGS converted to the ESPA internal file format (see the Data Preprocessing section for more information).
+    # Output products are written in the ESPA internal file format (see the Data Postprocessing section for more information).
+    # Updated all the Makefiles to use install instead of cp.
+
   * lndpm
     # Removed support in lndpm for any Landsat products other than LPGS products.  Scenes previously processed through NLAPS are now available via LPGS.  And, the UMD format previously supported is no longer utilized.  At the very least, all those scenes should be available from LPGS.  lndpm now reads the XML metadata file instead of the LPGS metadata file.
     # Updated lndpm to use the espa-common error handling and included ESPA headers and comments for each routine in the file.
     # Modified lndpm to pass the name of the XML file to the downstream apps in the parameter files.
     # Also, lndcal no longer needs the *.metadata.txt file, so that is no longer produced by lndpm
-    # Updated all the Makefiles to use install instead of cp.
 
   * lndcal
     # Modified lndcal to pull all the metadata information from the XML file instead of the *.metadata.txt file.
     # Modified lndcal to read raw binary products vs. GeoTIFF products.
     # Removed any recalibration or DN map related code.  The latest LPGS MTL files contain the gain/bias values and they are accurate, thus they will be used in the TOA reflectance computation.
     # Brightness temperature values are now written in Kelvin vs. degrees Celsius.  The valid range is 150 to 350 Kelvin and the scaling factor has been modified to be 0.1 (vs. the previous 0.01 for degrees Celsius).  The fill value remains the same as previous products.
-    # Updated all the Makefiles to use install instead of cp.
 
   * lndsr
     # Modified lndsr to pull all the metadata information from the XML file instead of the HDF file.
@@ -60,7 +63,6 @@ After compiling the espa-common raw_binary libraries and tools, the convert_espa
     # There is now no need to append band6 from lndth to lndsr, as it’s already part of the overall raw binary product.
     # Handled appropriate changes to deal with the brightness temp change to Kelvin vs. degrees C.
     # Rewrote all of the FORTRAN routines as it doesn’t play nicely with raw binary files, and to just clean things up and use C across the board.
-    # Updated all the Makefiles to use install instead of cp.
 
   * lndapp
     # Removed lndapp since it’s no longer used for appending band6 to the lndsr product in lndsrbm.
