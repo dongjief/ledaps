@@ -29,6 +29,8 @@ Release Date: July 26, 2012
     export HDFLIB="path_to_HDF_libraries"
     export HDFEOS_INC="path_to_HDFEOS_include_files"
     export HDFEOS_LIB="path_to_HDFEOS_libraries"
+    export JPEGINC="path_to_JPEG_include_files"
+    export JPEGLIB="path_to_JPEG_libraries"
     export BIN="path_to_directory_for_LEDAPS_binaries"
 }}}
   # Install ancillary files
