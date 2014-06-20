@@ -68,28 +68,9 @@ lndcal <lndcal_input_text>
 lndsr <lndsr_input_text>
 lndsrbm.ksh <lndsr_input_text>
 }}}
-Or simply run the combined commands to generate all (includes lndsrbm)
+Or simply run the do_ledaps Python script in the LEDAPS bin directory to run the applications.  Use do_ledaps.py --help for the usage information.  This script requires that your LEDAPS binaries are in your $PATH or that you have a $BIN environment variable set up to point to the LEDAPS bin directory.
 {{{
-do_ledaps.csh <Landsat_meta_file>
-}}}
-Create a file called do_ledaps.csh in your $BIN directory.
-{{{
-#! /bin/csh -f
-
-if $#argv != 1 then
-    echo "Usage: do_ledaps.csh <Landsat_MTL_file>"
-    exit
-else
-    set meta_file = $argv[1]
-    set meta = `echo $meta_file | sed -e 's/.txt//' -e 's/_MTL//' -e 's/.met//'`
-endif
-}}}
-  #: Run LEDAPS modules
-{{{
-$BIN/lndpm $meta_file
-$BIN/lndcal lndcal.$meta.txt
-$BIN/lndsr lndsr.$meta.txt
-$BIN/lndsrbm.ksh lndsr.$meta.txt
+do_ledaps.py --metafile <Landsat_meta_file>
 }}}
   #: Check output
 {{{
