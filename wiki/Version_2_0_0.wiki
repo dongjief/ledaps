@@ -16,6 +16,8 @@ Release Date: June 6, 2014
 === Installation ===
 Same installation instructions as for Version 1.0.0 with the addition of the ESPA raw binary libraries and tools in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the LEDAPS application.
 
+As of version 2.0.0, the do_ledaps.py script requires the ESPA XML file for input instead of the Landsat MTL file.  Use do_ledaps.py --help to obtain the usage information.
+
 === Dependencies ===
 Same dependencies as for Version 1.0.0 with the addition of the ESPA raw binary libraries and tools in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the LEDAPS application.
 
