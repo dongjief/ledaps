@@ -1,0 +1,128 @@
+#summary Version 2.1.0 of the LEDAPS software.
+
+== Ledaps Version 2.1.0 Release Notes ==
+Release Date: Oct. 31, 2014 (Planned)
+
+=== Downloads ===
+
+* Ledaps source code - available via the [http://code.google.com/p/ledaps/source/checkout LEDAPS Google Projects Source] link
+
+  * Non-members may check out a read-only working copy anonymously over HTTP.
+  * svn checkout http://ledaps.googlecode.com/svn/releases/version_2.1.0 ledaps-read-only 
+
+* [http://landsat.usgs.gov/espa/files/ledaps_anc_1980-2012.tar.gz Ledaps ancillaries]
+
+* Ledaps ancillary update scripts
+
+
+=== Installation ===
+  # Install dependent libraries - HDF-EOS GCTP, HDF4, HDF-EOS2, TIFF, GeoTIFF, HDF5, netCDF4.
+  # Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.  Note: If the HDF library was configured and built with szip support, then the user will also need to add an environment variable for SZIP include (SZIPINC) and library (SZIPLIB) files.
+{{{
+    export HDFEOS_GCTPINC="path_to_HDF-EOS_GCTP_include_files"
+    export HDFEOS_GCTPLIB="path_to_HDF-EOS_GCTP_libraries"
+    export TIFFINC="path_to_TIFF_include_files"
+    export TIFFLIB="path_to_TIFF_libraries"
+    export GEOTIFF_INC="path_to_GEOTIFF_include_files"
+    export GEOTIFF_LIB="path_to_GEOTIFF_libraries"
+    export HDFINC="path_to_HDF4_include_files"
+    export HDFLIB="path_to_HDF4_libraries"
+    export HDFEOS_INC="path_to_HDFEOS_include_files"
+    export HDFEOS_LIB="path_to_HDFEOS_libraries"
+    export HDF5INC="path_to_HDF5_include_files"
+    export HDF5LIB="path_to_HDF5_libraries"
+    export NCDF4INC="path_to_NetCDF4_include_files"
+    export NCDF4LIB="path_to_NetCDF4_libraries"
+    export JPEGINC="path_to_JPEG_include_files"
+    export JPEGLIB="path_to_JPEG_libraries"
+    export CURLINC="path_to_CURL_include_files"
+    export CURLLIB="path_to_CURL_libraries"
+    export IDNINC="path_to_LIBIDN_include_files"
+    export IDNLIB="path_to_LIBIDN_libraries"
+    export BIN="path_to_directory_for_LEDAPS_binaries"
+}}}
+  # Install auxiliary files
+{{{
+    tar -xvzf ledapsAnc.1980-2012.tar.gz
+}}}
+  # Checkout (from Google ledaps project) and install source files
+{{{
+cd ledapsSrc/src
+make
+make install
+make clean
+}}}
+This will create a list of executable files under $BIN<br />
+lndapp lndcal  lndpm  lndsr  lndsrbm.ksh sixsV1.0B
+cmrbv1.0  compadjn  comptemp  geo2xy SDSreader3.0 xy2geo
+(tested in gcc and gfortran compiler)
+
+* Note that if the HDF library was configured and built with szip support, then the user will also need to add "-L$(SZIPLIB) -lsz" at the end of the library defines in the Makefiles.  The user should also add "-I$(SZIPINC)" to the include directory defines in the Makefile.
+
+* Note that new cloud mask program (lndsrbm) calls command 
+"ncdump" which is a standard HDF command. This release includes 
+a linux version ncdump command in the bin directory. You need to replace the ncdump program if you run from a different OS system. If you don't want to run optional lndsr-based cloud mask (lndsrbm), you will not need the ncdump program.
+
+  #: Setup environment
+{{{
+export LEDAPS_AUX_DIR="directory_saved_ancillary_files"
+(or in c shell use 
+setenv LEDAPS_AUX_DIR "directory_saved_ancillary_files")
+}}}
+  #: Test - Download Landsat files and then run following commands separately
+{{{
+lndpm <Landsat_meta_file>
+lndcal <lndcal_input_text>
+lndsr <lndsr_input_text>
+lndsrbm.ksh <lndsr_input_text>
+}}}
+Or simply run the do_ledaps Python script in the LEDAPS bin directory to run the applications.  Use do_ledaps.py --help for the usage information.  This script requires that your LEDAPS binaries are in your $PATH or that you have a $BIN environment variable set up to point to the LEDAPS bin directory.
+{{{
+do_ledaps.py --xml <ESPA_XML_file>
+}}}
+  #: Check output
+{{{
+lndcal.*.img: top-of-atmosphere (TOA) reflectance in raw binary format
+lndth.*.img: thermal brightness temperature in raw binary format
+lndsr.*.img: surface reflectance in raw binary format
+(each file is also associated with a ENVI header file that contains geographic information)
+}}}
+
+=== Dependencies ===
+  * GCTP libraries
+  * TIFF libraries
+  * GeoTIFF libraries
+  * HDF4 libraries
+  * HDF-EOS2 libraries
+  * HDF5 libraries
+  * netCDF4 libraries
+  * Auxiliary data products
+    # NCEP water vapor data
+    # TOMS ozone data
+    # CMGDEM HDF file
+
+=== Verification Data ===
+
+=== User Manual ===
+
+=== Product Guide ===
+
+
+== Changes From Previous Version ==
+====Updates on October 29, 2014 - USGS EROS====
+  * Overall
+    # Switched the ANC_PATH environment variable name to LEDAPS_AUX_DIR to be more consistent with the Landsat 8 auxiliary pathname and to better identify the environment variable points to the LEDAPS auxiliary data.
+
+  * lndsr
+    # Updated to modify the interpolation of the cloud diagnostics, particularly in areas of heavy cloud cover where the auxiliary 2m air temp values are needed/utilized to assist in the cloud and snow cover assessment. In these areas, the average band6 temperature is not available due to the lack of clear pixels from heavy cloud cover. The fix involved interpolating the 2m air temp independently of the band6 temperature, so that the 2m air temp is always interpolated even when there aren’t any clear band6 values.
+    # Updated to work with the new NCEP variables as floating point values without scale factors and offsets.
+    # Updated 6S code to do error checking in the event that a file is not available to be opened/created. The error is caught and a message is printed. Updated lndsr code to use the bash shell instead of the sh shell to invoke the 6s command file. These mods were made in an attempt to prevent the temporary file error which occurs intermittently in ESPA.
+
+  * lndsrbm
+    # Updated to work with the new NCEP variables as floating point values without scale factors and offsets.
+
+  * bin
+    # Updated do_ledaps.py to support --process_sr “True”/”False” just like the do_l8_sr.py. This allows us to not run SR processing if it is not needed. If --process_sr is not provided on the command line, then it will be defaulted to “True” and SR processing will be performed.
+
+  * ledapsAncSrc
+    # Modified the NCEP repackage executable in the ledapsAncSrc to process the newly released NCEP products.  The NCEP products are in netCDF4 vs. netCDF3.  The variables are now written as floating point vs. int16, and no longer have a scale factor or offset.
