@@ -17,6 +17,8 @@ Release Date: Oct. 31, 2014 (Planned)
 
 === Installation ===
   # Install dependent libraries - HDF-EOS GCTP, HDF4, HDF-EOS2, TIFF, GeoTIFF, HDF5, netCDF4.
+    * It's recommended to build the HDF4 library using --disable-netcdf.
+    * It's recommended to follow the netCDF4 build instructions for building HDF5 libraries.
   # Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.  Note: If the HDF library was configured and built with szip support, then the user will also need to add an environment variable for SZIP include (SZIPINC) and library (SZIPLIB) files.
 {{{
     export HDFEOS_GCTPINC="path_to_HDF-EOS_GCTP_include_files"
