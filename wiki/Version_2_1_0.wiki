@@ -10,9 +10,9 @@ Release Date: Oct. 31, 2014 (Planned)
   * Non-members may check out a read-only working copy anonymously over HTTP.
   * svn checkout http://ledaps.googlecode.com/svn/releases/version_2.1.0 ledaps-read-only 
 
-* [http://landsat.usgs.gov/espa/files/ledaps_anc_1980-2012.tar.gz Ledaps ancillaries]
+* [http://landsat.usgs.gov/espa/files/ledaps_anc_1980-2012.tar.gz Ledaps auxiliaries]
 
-* Ledaps ancillary update scripts
+* Ledaps auxiliary update scripts
 
 
 === Installation ===
@@ -66,9 +66,9 @@ This will create a list of executable files under $BIN (tested in gcc and gfortr
 
   #: Setup environment
 {{{
-export LEDAPS_AUX_DIR="directory_saved_ancillary_files"
+export LEDAPS_AUX_DIR="directory_saved_auxiliary_files"
 (or in c shell use 
-setenv LEDAPS_AUX_DIR "directory_saved_ancillary_files")
+setenv LEDAPS_AUX_DIR "directory_saved_auxiliary_files")
 }}}
 
   #: Update the auxiliary files
