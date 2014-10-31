@@ -1,7 +1,7 @@
 #summary Version 2.1.0 of the LEDAPS software.
 
 == Ledaps Version 2.1.0 Release Notes ==
-Release Date: Oct. 31, 2014 (Planned)
+Release Date: Oct. 31, 2014
 
 === Downloads ===
 
