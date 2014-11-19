@@ -10,10 +10,9 @@ Release Date: July 26, 2012
   * Non-members may check out a read-only working copy anonymously over HTTP.
   * svn checkout http://ledaps.googlecode.com/svn/tags/version_1.3.1 ledaps-read-only 
 
-* [http://espa.cr.usgs.gov/validations/ledaps_auxiliary/ledaps_aux_1978-2014.tar.gz Ledaps ancillaries]
+  * Ledaps auxiliary update scripts
 
-* Ledaps ancillary update scripts
-
+* Ledaps auxiliary files - available via the [http://espa.cr.usgs.gov/validations/ledaps_auxiliary/ledaps_aux_1978-2014.tar.gz LEDAPS auxiliaries] link
 
 === Installation ===
   # Install dependent libraries - HDF-EOS GCTP, HDF4, HDF-EOS2, TIFF, GeoTIFF
