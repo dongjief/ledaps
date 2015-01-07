@@ -7,7 +7,7 @@ Release Date: June 6, 2014
 * Ledaps source code - available via the [http://code.google.com/p/ledaps/source/checkout LEDAPS Google Projects Source] link
 
   * Non-members may check out a read-only working copy anonymously over HTTP.
-  * svn checkout http://ledaps.googlecode.com/svn/tags/version_2.0.0 ledaps-read-only 
+  * svn checkout http://ledaps.googlecode.com/svn/releases/version_2.0.0 ledaps-read-only 
 
 * Ledaps auxiliary files - available via the [http://espa.cr.usgs.gov/validations/ledaps_auxiliary/ledaps_aux.1978-2014.tar.gz LEDAPS auxiliaries] link
 
