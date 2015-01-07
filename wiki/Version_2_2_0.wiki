@@ -1,0 +1,125 @@
+#summary Version 2.2.0 of the LEDAPS software.
+
+== Ledaps Version 2.2.0 Release Notes ==
+Release Date: Dec. 23, 2014
+
+=== Downloads ===
+
+* Ledaps source code - available via the [http://code.google.com/p/ledaps/source/checkout LEDAPS Google Projects Source] link
+
+  * Non-members may check out a read-only working copy anonymously over HTTP.
+  * svn checkout http://ledaps.googlecode.com/svn/releases/version_2.2.0 ledaps-read-only 
+
+* Ledaps auxiliary files - available via the [http://espa.cr.usgs.gov/validations/ledaps_auxiliary/ledaps_aux.1978-2014.tar.gz LEDAPS auxiliaries] link
+
+* Ledaps auxiliary update scripts - found in the LedapsAncSrc directory of the LEDAPS download.
+
+=== Installation ===
+  # Install dependent libraries - HDF-EOS GCTP, HDF4, HDF-EOS2, TIFF, GeoTIFF, HDF5, netCDF4.
+    * It's recommended to build the HDF4 library using --disable-netcdf.
+    * It's recommended to follow the netCDF4 build instructions for building HDF5 libraries.
+  # Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.  Note: If the HDF library was configured and built with szip support, then the user will also need to add an environment variable for SZIP include (SZIPINC) and library (SZIPLIB) files.
+{{{
+    export HDFEOS_GCTPINC="path_to_HDF-EOS_GCTP_include_files"
+    export HDFEOS_GCTPLIB="path_to_HDF-EOS_GCTP_libraries"
+    export TIFFINC="path_to_TIFF_include_files"
+    export TIFFLIB="path_to_TIFF_libraries"
+    export GEOTIFF_INC="path_to_GEOTIFF_include_files"
+    export GEOTIFF_LIB="path_to_GEOTIFF_libraries"
+    export HDFINC="path_to_HDF4_include_files"
+    export HDFLIB="path_to_HDF4_libraries"
+    export HDFEOS_INC="path_to_HDFEOS_include_files"
+    export HDFEOS_LIB="path_to_HDFEOS_libraries"
+    export HDF5INC="path_to_HDF5_include_files"
+    export HDF5LIB="path_to_HDF5_libraries"
+    export NCDF4INC="path_to_NetCDF4_include_files"
+    export NCDF4LIB="path_to_NetCDF4_libraries"
+    export JPEGINC="path_to_JPEG_include_files"
+    export JPEGLIB="path_to_JPEG_libraries"
+    export CURLINC="path_to_CURL_include_files"
+    export CURLLIB="path_to_CURL_libraries"
+    export IDNINC="path_to_LIBIDN_include_files"
+    export IDNLIB="path_to_LIBIDN_libraries"
+    export ESPAINC="path_to_ESPA-COMMON_raw_binary_include_files"
+    export ESPALIB="path_to_ESPA-COMMON_raw_binary_libraries"
+    export BIN="path_to_directory_for_LEDAPS_binaries"
+}}}
+  # Install ESPA COMMON raw binary libraries and tools. Checkout the latest release from https://code.google.com/p/espa-common/source/checkout.  Goto the src/raw_binary directory and build the source code there. ESPAINC and ESPALIB above refer to the include and lib directories created by building this source code using make followed by make install. The ESPA raw binary conversion tools will be located in the $BIN directory.
+  # Install baseline auxiliary files.
+*Please note that the original ozone data has data gaps in 1978 (actual data starts on Nov. 1, 1978), 1979 (partial), 1982 (partial - 1 day), 1993 (partial), 1994 (partial), 1995 (complete gap), 1996 (partial), 1997 (partial), 1998 (missing DOY 347+), 1999 (missing DOY 001), 2002 (partial - 9 days), 2003 (partial - 6 days), 2006 (partial - 3 days), 2008 (missing Sept. 28/29), ...  You will want to run the updatetoms script (described later) on this baseline set of data.  The NASA LEDAPS group has filled some of these larger data gaps by interpolating the missing data. If the ozone data is missing from the NASA ftp site, then the updatetoms script will not try to update that auxiliary file.
+{{{
+    tar -xvzf ledaps_aux.1978-2014.tar.gz
+}}}
+  # Checkout (from Google ledaps project) and install source files
+{{{
+cd ledapsSrc/src
+make
+make install
+}}}
+{{{
+cd ledapsAncSrc/src
+make
+make install
+}}}
+This will create a list of executable files under $BIN (tested in gcc and gfortran compiler)
+
+
+* Note that if the HDF library was configured and built with szip support, then the user will also need to add "-L$(SZIPLIB) -lsz" at the end of the library defines in the Makefiles.  The user should also add "-I$(SZIPINC)" to the include directory defines in the Makefile.
+
+  #: Setup environment
+{{{
+export LEDAPS_AUX_DIR="directory_saved_auxiliary_files"
+(or in c shell use 
+setenv LEDAPS_AUX_DIR "directory_saved_auxiliary_files")
+}}}
+
+  #: Update the auxiliary files
+Run updatencep.py and updatetoms.py using the --today or --quarterly options, depending on whether or not your auxiliary data files are up-to-date.  You might consider adding these two updates with the --today option to a nightly cron job to keep your auxiliary files up-to-date.
+
+  #: Test - Download Landsat GeoTIFF files and then run the following commands separately
+{{{
+convert_lpgs_to_espa --mtl <Landsat_meta_file> --xml <output_espa_xml_file>
+lndpm <espa_xml_file>
+lndcal <lndcal_input_text>
+lndsr <lndsr_input_text>
+lndsrbm.ksh <lndsr_input_text>
+}}}
+Or simply run the do_ledaps Python script in the LEDAPS bin directory to run the applications (after running the convert_lpgs_to_espa conversion).  Use do_ledaps.py --help for the usage information.  This script requires that your LEDAPS binaries are in your $PATH or that you have a $BIN environment variable set up to point to the LEDAPS bin directory.
+{{{
+do_ledaps.py --xml <ESPA_XML_file>
+}}}
+  #: Check output
+{{{
+*_toa_*.img: top-of-atmosphere (TOA) reflectance in raw binary format
+*_toa_band6*.img: thermal brightness temperature in raw binary format
+*_sr_*.img: surface reflectance data and associated QA in raw binary format
+(each file is also associated with a ENVI header file that contains geographic information)
+}}}
+
+=== Dependencies ===
+  * GCTP libraries
+  * TIFF libraries
+  * GeoTIFF libraries
+  * HDF4 libraries
+  * HDF-EOS2 libraries
+  * HDF5 libraries
+  * netCDF4 libraries
+  * Auxiliary data products
+    # NCEP water vapor data
+    # TOMS ozone data
+    # CMGDEM HDF file
+
+=== Verification Data ===
+
+=== User Manual ===
+
+=== Product Guide ===
+
+
+== Changes From Previous Version ==
+====Updates on December 23, 2014 - USGS EROS====
+  * lndsr
+    # Modified the QA bands in lndsr to not have a fill_value written in the XML file.  The fill information is available from the fill band itself.
+
+  * ledapsAncSrc
+    # Added a check to the updatencep application to make sure the input NCEP variables are floating point and not int16, to better support the latest changes of NCEP products and to catch if we are still trying to process the old-style NCEP products.
