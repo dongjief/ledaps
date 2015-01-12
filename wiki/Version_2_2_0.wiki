@@ -4,7 +4,6 @@
 Release Date: Dec. 23, 2014
 
 === Downloads ===
-
 * Ledaps source code - available via the [http://code.google.com/p/ledaps/source/checkout LEDAPS Google Projects Source] link
 
   * Non-members may check out a read-only working copy anonymously over HTTP.
@@ -81,6 +80,12 @@ do_ledaps.py --xml <Landsat_ESPA_XML_file>
     # NCEP water vapor data
     # TOMS ozone data
     # CMGDEM HDF file
+
+=== Data Preprocessing ===
+This version of the LEDAPS application requires the input Landsat products to be in the ESPA internal file format.  After compiling the espa-common raw_binary libraries and tools, the convert_lpgs_to_espa command-line tool can be used to create the ESPA internal file format for input to the LEDAPS application.
+
+=== Data Postprocessing ===
+After compiling the espa-common raw_binary libraries and tools, the convert_espa_to_gtif and convert_espa_to_hdf command-line tools can be used to convert the ESPA internal file format to HDF or GeoTIFF.  Otherwise the data will remain in the ESPA internal file format, which includes each band in the ENVI file format (i.e. raw binary file with associated ENVI header file) and an overall XML metadata file.
 
 === Verification Data ===
 
