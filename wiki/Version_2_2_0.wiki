@@ -45,9 +45,9 @@ cmrbv1.0  compadjn  comptemp  geo2xy SDSreader3.0 xy2geo
 
   #: Setup environment
 {{{
-export ANC_PATH="directory_saved_ancillary_files"
+export LEDAPS_AUX_DIR="directory_saved_auxiliary_files"
 (or in c shell use 
-setenv ANC_PATH "directory_saved_ancillary_files")
+setenv LEDAPS_AUX_DIR "directory_saved_auxiliary_files")
 }}}
   #: Test - Download Landsat files and then run following commands separately
 {{{
