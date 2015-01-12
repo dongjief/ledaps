@@ -13,13 +13,72 @@ Release Date: June 6, 2014
 
 * Ledaps auxiliary update scripts - found in the LedapsAncSrc directory of the LEDAPS download.
 
-=== Installation ===
-Same installation instructions as for Version 1.0.0 with the addition of the ESPA raw binary libraries and tools in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the LEDAPS application.
+  # Install dependent libraries - ESPA raw binary libraries (dependent upon HDF-EOS GCTP, HDF4, HDF-EOS2, TIFF, GeoTIFF), LIBXML2
+  # ESPA raw binary libraries and tools are in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the spectral indices application.  The Wiki for ESPA-COMMON provides install instructions for these libraries and tools.
+  # Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.
+{{{
+    export ESPAINC="path_to_ESPA_include_files"
+    export ESPALIB="path_to_ESPA_library_files"
+    export HDFEOS_GCTPINC="path_to_HDF-EOS_GCTP_include_files"
+    export HDFEOS_GCTPLIB="path_to_HDF-EOS_GCTP_libraries"
+    export XML2INC="path_to_libxml2_include_files"
+    export XML2LIB="path_to_libxml2_libraries"
+    export BIN="path_to_directory_for_LEDAPS_binaries"
+}}}
+  # Install baseline auxiliary files.  Please note that the original ozone data has data gaps in 1978 (actual data starts on Nov. 1, 1978), 1979 (partial), 1993 (partial), 1994 (partial), 1995 (complete gap), 1996 (partial), 1997 (partial), 1998 (missing DOY 347+), 2008 (missing Sept. 28/29), ...  You will want to run the updatetoms script (described later) on this baseline set of data.  The NASA LEDAPS group has filled some of these larger data gaps by interpolating the missing data. If the ozone data is missing from the NASA ftp site, then the updatetoms script will not try to update that auxiliary file.
+{{{
+    tar -xvzf ledaps_aux.1978-2014.tar.gz
+}}}
+  # Checkout (from Google ledaps project) and install source files
+{{{
+cd ledapsSrc/src
+make
+make install
+make clean
+}}}
+This will create a list of executable files under $BIN<br />
+lndcal  lndpm  lndsr  lndsrbm.ksh sixsV1.0B
+cmrbv1.0  compadjn  comptemp  geo2xy SDSreader3.0 xy2geo
+(tested in gcc and gfortran compiler)
 
-As of version 2.0.0, the do_ledaps.py script requires the ESPA XML file for input instead of the Landsat MTL file.  Use do_ledaps.py --help to obtain the usage information.
+  #: Setup environment
+{{{
+export LEDAPS_AUX_DIR="directory_saved_auxiliary_files"
+(or in c shell use 
+setenv LEDAPS_AUX_DIR "directory_saved_auxiliary_files")
+}}}
+  #: Test - Download Landsat files and then run following commands separately
+{{{
+convert_lpgs_to_espa --mtl <Landsat_MTL_file> --xml <Landsat_ESPA_XML_file>
+lndpm <Landsat_ESPA_XML_file>
+lndcal <lndcal_input_text>
+lndsr <lndsr_input_text>
+lndsrbm.ksh <lndsr_input_text>
+}}}
+Or simply run the do_ledaps Python script in the LEDAPS bin directory to run the applications.  Use do_ledaps.py --help for the usage information.  This script requires that your LEDAPS binaries are in your $PATH or that you have a $BIN environment variable set up to point to the LEDAPS bin directory.
+{{{
+convert_lpgs_to_espa --mtl <Landsat_MTL_file> --xml <Landsat_ESPA_XML_file>
+do_ledaps.py --xml <Landsat_ESPA_XML_file>
+}}}
+  #: Check output
+{{{
+{scene_name}_toa_*: top-of-atmosphere (TOA) reflectance in internal ESPA file format (brightness temperatures are _toa_band6*)
+{scene_name}_sr_*: surface reflectance in internal ESPA file format
+}}}
 
 === Dependencies ===
-Same dependencies as for Version 1.0.0 with the addition of the ESPA raw binary libraries and tools in the [https://code.google.com/p/espa-common/ espa_common Google Project].  The user will need to build the src/raw_binary code to create the libraries used for building the current version of the LEDAPS application.
+  * ESPA common libraries
+  * GCTP libraries
+  * TIFF libraries
+  * GeoTIFF libraries
+  * HDF4 libraries
+  * HDF-EOS2 libraries
+  * GCTP libraries
+  * LIBXML2 libraries
+  * Ancillary data products
+    # NCEP water vapor data
+    # TOMS ozone data
+    # CMGDEM HDF file
 
 === Data Preprocessing ===
 This version of the LEDAPS application requires the input Landsat products to be in the ESPA internal file format.  After compiling the espa-common raw_binary libraries and tools, the convert_lpgs_to_espa command-line tool can be used to create the ESPA internal file format for input to the LEDAPS application.
